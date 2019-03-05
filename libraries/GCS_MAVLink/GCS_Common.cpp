@@ -523,30 +523,6 @@ void GCS_MAVLINK::handle_mission_write_partial_list(AP_Mission &mission, mavlink
 }
 
 
-/*
-  pass mavlink messages to the AP_Mount singleton
- */
-void GCS_MAVLINK::handle_mount_message(const mavlink_message_t *msg)
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return;
-    }
-    mount->handle_message(chan, msg);
-}
-
-/*
-  pass parameter value messages through to mount library
- */
-void GCS_MAVLINK::handle_param_value(mavlink_message_t *msg)
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return;
-    }
-    mount->handle_param_value(msg);
-}
-
 void GCS_MAVLINK::send_textv(MAV_SEVERITY severity, const char *fmt, va_list arg_list)
 {
     char text[MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN+1];
@@ -2795,11 +2771,9 @@ void GCS_MAVLINK::handle_common_message(mavlink_message_t *msg)
         break;
 
     case MAVLINK_MSG_ID_GIMBAL_REPORT:
-        handle_mount_message(msg);
         break;
 
     case MAVLINK_MSG_ID_PARAM_VALUE:
-        handle_param_value(msg);
         break;
 
     case MAVLINK_MSG_ID_SERIAL_CONTROL:
@@ -2824,7 +2798,6 @@ void GCS_MAVLINK::handle_common_message(mavlink_message_t *msg)
 
     case MAVLINK_MSG_ID_MOUNT_CONFIGURE: // deprecated. Use MAV_CMD_DO_MOUNT_CONFIGURE
     case MAVLINK_MSG_ID_MOUNT_CONTROL: // deprecated. Use MAV_CMD_DO_MOUNT_CONTROL
-        handle_mount_message(msg);
         break;
 
     case MAVLINK_MSG_ID_PLAY_TUNE:
@@ -3247,7 +3220,6 @@ MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t 
 
     case MAV_CMD_DO_SET_ROI_LOCATION:
     case MAV_CMD_DO_SET_ROI:
-        result = handle_command_do_set_roi(packet);
         break;
 
     case MAV_CMD_PREFLIGHT_CALIBRATION:
@@ -3317,21 +3289,6 @@ void GCS_MAVLINK::handle_command_long(mavlink_message_t *msg)
     mavlink_msg_command_ack_send_buf(msg, chan, packet.command, result);
 }
 
-MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const Location &roi_loc)
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return MAV_RESULT_UNSUPPORTED;
-    }
-
-    // sanity check location
-    if (!check_latlng(roi_loc)) {
-        return MAV_RESULT_FAILED;
-    }
-
-    return MAV_RESULT_ACCEPTED;
-}
-
 MAV_RESULT GCS_MAVLINK::handle_command_int_do_set_home(const mavlink_command_int_t &packet)
 {
     if (is_equal(packet.param1, 1.0f)) {
@@ -3371,49 +3328,12 @@ MAV_RESULT GCS_MAVLINK::handle_command_int_do_set_home(const mavlink_command_int
     return MAV_RESULT_ACCEPTED;
 }
 
-MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const mavlink_command_int_t &packet)
-{
-    // be aware that this method is called for both MAV_CMD_DO_SET_ROI
-    // and MAV_CMD_DO_SET_ROI_LOCATION.  If you intend to support any
-    // of the extra fields in the former then you will need to split
-    // off support for MAV_CMD_DO_SET_ROI_LOCATION (which doesn't
-    // support the extra fields).
-
-    // param1 : /* Region of interest mode (not used)*/
-    // param2 : /* MISSION index/ target ID (not used)*/
-    // param3 : /* ROI index (not used)*/
-    // param4 : /* empty */
-    // x : lat
-    // y : lon
-    // z : alt
-    Location roi_loc;
-    roi_loc.lat = packet.x;
-    roi_loc.lng = packet.y;
-    roi_loc.alt = (int32_t)(packet.z * 100.0f);
-    return handle_command_do_set_roi(roi_loc);
-}
-
-MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const mavlink_command_long_t &packet)
-{
-    // be aware that this method is called for both MAV_CMD_DO_SET_ROI
-    // and MAV_CMD_DO_SET_ROI_LOCATION.  If you intend to support any
-    // of the extra fields in the former then you will need to split
-    // off support for MAV_CMD_DO_SET_ROI_LOCATION (which doesn't
-    // support the extra fields).
-
-    Location roi_loc;
-    roi_loc.lat = (int32_t)(packet.param5 * 1.0e7f);
-    roi_loc.lng = (int32_t)(packet.param6 * 1.0e7f);
-    roi_loc.alt = (int32_t)(packet.param7 * 100.0f);
-    return handle_command_do_set_roi(roi_loc);
-}
-
 MAV_RESULT GCS_MAVLINK::handle_command_int_packet(const mavlink_command_int_t &packet)
 {
     switch (packet.command) {
     case MAV_CMD_DO_SET_ROI:
     case MAV_CMD_DO_SET_ROI_LOCATION:
-        return handle_command_do_set_roi(packet);
+        break;
     case MAV_CMD_DO_SET_HOME:
         return handle_command_int_do_set_home(packet);
     default:
@@ -3578,24 +3498,6 @@ void GCS_MAVLINK::send_global_position_int()
         ahrs.yaw_sensor);                // compass heading in 1/100 degree
 }
 
-void GCS_MAVLINK::send_gimbal_report() const
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return;
-    }
-    mount->send_gimbal_report(chan);
-}
-
-void GCS_MAVLINK::send_mount_status() const
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return;
-    }
-    mount->send_mount_status(chan);
-}
-
 bool GCS_MAVLINK::try_send_message(const enum ap_message id)
 {
     bool ret = true;
@@ -3613,8 +3515,6 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_GIMBAL_REPORT:
-        CHECK_PAYLOAD_SIZE(GIMBAL_REPORT);
-        send_gimbal_report();
         break;
 
     case MSG_HEARTBEAT:
@@ -3706,8 +3606,6 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_MOUNT_STATUS:
-        CHECK_PAYLOAD_SIZE(MOUNT_STATUS);
-        send_mount_status();
         break;
 
     case MSG_OPTICAL_FLOW:

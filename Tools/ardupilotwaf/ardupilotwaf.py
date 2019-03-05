@@ -54,7 +54,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_Tuning',
     'AP_RPM',
     'AP_RSSI',
-    'AP_Mount',
+    #'AP_Mount',
     'AP_Module',
     'AP_Button',
     'AP_ICEngine',
@@ -62,7 +62,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_FlashStorage',
     'AP_Relay',
     'AP_ServoRelayEvents',
-    'AP_Volz_Protocol',
+    #'AP_Volz_Protocol',
     'AP_SBusOut',
     'AP_IOMCU',
     'AP_Parachute',
@@ -80,8 +80,8 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AC_Fence',
     #'AC_Avoidance',
     #'AP_LandingGear',
-    'AP_RobotisServo',
-    'AP_ToshibaCAN',
+    #'AP_RobotisServo',
+    #'AP_ToshibaCAN',
 ]
 
 def get_legacy_defines(sketch_name):

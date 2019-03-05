@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include "MAVLink_routing.h"
 #include <AP_SerialManager/AP_SerialManager.h>
-#include <AP_Mount/AP_Mount.h>
 #include <AP_Avoidance/AP_Avoidance.h>
 #include <AP_Proximity/AP_Proximity.h>
 #include <AP_Frsky_Telem/AP_Frsky_Telem.h>
@@ -208,9 +207,7 @@ public:
     void send_local_position() const;
     void send_vfr_hud();
     void send_vibration() const;
-    void send_mount_status() const;
     void send_named_float(const char *name, float value) const;
-    void send_gimbal_report() const;
     void send_home() const;
     void send_ekf_origin() const;
     virtual void send_position_target_global_int() { };
@@ -338,9 +335,7 @@ protected:
     void handle_common_rally_message(mavlink_message_t *msg);
     void handle_rally_fetch_point(mavlink_message_t *msg);
     void handle_rally_point(mavlink_message_t *msg);
-    virtual void handle_mount_message(const mavlink_message_t *msg);
     void handle_fence_message(mavlink_message_t *msg);
-    void handle_param_value(mavlink_message_t *msg);
     void handle_radio_status(mavlink_message_t *msg, AP_Logger &dataflash, bool log_radio);
     void handle_serial_control(const mavlink_message_t *msg);
     void handle_vision_position_delta(mavlink_message_t *msg);
@@ -401,9 +396,6 @@ protected:
     virtual MAV_RESULT handle_command_long_packet(const mavlink_command_long_t &packet);
     MAV_RESULT handle_command_camera(const mavlink_command_long_t &packet);
     MAV_RESULT handle_command_do_send_banner(const mavlink_command_long_t &packet);
-    MAV_RESULT handle_command_do_set_roi(const mavlink_command_int_t &packet);
-    MAV_RESULT handle_command_do_set_roi(const mavlink_command_long_t &packet);
-    virtual MAV_RESULT handle_command_do_set_roi(const Location &roi_loc);
     MAV_RESULT handle_command_do_set_mode(const mavlink_command_long_t &packet);
     MAV_RESULT handle_command_get_home_position(const mavlink_command_long_t &packet);
     MAV_RESULT handle_command_do_fence_enable(const mavlink_command_long_t &packet);

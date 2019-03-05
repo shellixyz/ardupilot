@@ -37,9 +37,7 @@ extern const AP_HAL::HAL& hal;
 
 SRV_Channel *SRV_Channels::channels;
 SRV_Channels *SRV_Channels::_singleton;
-AP_Volz_Protocol *SRV_Channels::volz_ptr;
 AP_SBusOut *SRV_Channels::sbus_ptr;
-AP_RobotisServo *SRV_Channels::robotis_ptr;
 
 #if HAL_SUPPORT_RCOUT_SERIAL
 AP_BLHeli *SRV_Channels::blheli_ptr;
@@ -136,7 +134,7 @@ const AP_Param::GroupInfo SRV_Channels::var_info[] = {
 
     // @Group: _VOLZ_
     // @Path: ../AP_Volz_Protocol/AP_Volz_Protocol.cpp
-    AP_SUBGROUPINFO(volz, "_VOLZ_",  19, SRV_Channels, AP_Volz_Protocol),
+    //AP_SUBGROUPINFO(volz, "_VOLZ_",  19, SRV_Channels, AP_Volz_Protocol),
 
     // @Group: _SBUS_
     // @Path: ../AP_SBusOut/AP_SBusOut.cpp
@@ -150,7 +148,7 @@ const AP_Param::GroupInfo SRV_Channels::var_info[] = {
 
     // @Group: _ROB_
     // @Path: ../AP_RobotisServo/AP_RobotisServo.cpp
-    AP_SUBGROUPINFO(robotis, "_ROB_",  22, SRV_Channels, AP_RobotisServo),
+    //AP_SUBGROUPINFO(robotis, "_ROB_",  22, SRV_Channels, AP_RobotisServo),
     
     AP_GROUPEND
 };
@@ -171,9 +169,7 @@ SRV_Channels::SRV_Channels(void)
         channels[i].ch_num = i;
     }
 
-    volz_ptr = &volz;
     sbus_ptr = &sbus;
-    robotis_ptr = &robotis;
 #if HAL_SUPPORT_RCOUT_SERIAL
     blheli_ptr = &blheli;
 #endif
@@ -234,15 +230,9 @@ void SRV_Channels::push()
 {
     hal.rcout->push();
 
-    // give volz library a chance to update
-    volz_ptr->update();
-
     // give sbus library a chance to update
     sbus_ptr->update();
 
-    // give robotis library a chance to update
-    robotis_ptr->update();
-    
 #if HAL_SUPPORT_RCOUT_SERIAL
     // give blheli telemetry a chance to update
     blheli_ptr->update_telemetry();
