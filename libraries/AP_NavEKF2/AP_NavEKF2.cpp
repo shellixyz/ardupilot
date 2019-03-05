@@ -280,7 +280,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Increment: 0.1
     // @User: Advanced
     // @Units: m
-    AP_GROUPINFO("RNG_M_NSE", 18, NavEKF2, _rngNoise, 0.5f),
+    //AP_GROUPINFO("RNG_M_NSE", 18, NavEKF2, _rngNoise, 0.5f),
 
     // @Param: RNG_I_GATE
     // @DisplayName: Range finder measurement gate size
@@ -288,7 +288,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Range: 100 1000
     // @Increment: 25
     // @User: Advanced
-    AP_GROUPINFO("RNG_I_GATE", 19, NavEKF2, _rngInnovGate, 500),
+    //AP_GROUPINFO("RNG_I_GATE", 19, NavEKF2, _rngInnovGate, 500),
 
     // Optical flow measurement parameters
 
@@ -299,7 +299,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Increment: 0.1
     // @User: Advanced
     // @Units: rad/s
-    AP_GROUPINFO("MAX_FLOW", 20, NavEKF2, _maxFlowRate, 2.5f),
+    //AP_GROUPINFO("MAX_FLOW", 20, NavEKF2, _maxFlowRate, 2.5f),
 
     // @Param: FLOW_M_NSE
     // @DisplayName: Optical flow measurement noise (rad/s)
@@ -308,7 +308,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Increment: 0.05
     // @User: Advanced
     // @Units: rad/s
-    AP_GROUPINFO("FLOW_M_NSE", 21, NavEKF2, _flowNoise, FLOW_M_NSE_DEFAULT),
+    //AP_GROUPINFO("FLOW_M_NSE", 21, NavEKF2, _flowNoise, FLOW_M_NSE_DEFAULT),
 
     // @Param: FLOW_I_GATE
     // @DisplayName: Optical Flow measurement gate size
@@ -316,7 +316,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Range: 100 1000
     // @Increment: 25
     // @User: Advanced
-    AP_GROUPINFO("FLOW_I_GATE", 22, NavEKF2, _flowInnovGate, FLOW_I_GATE_DEFAULT),
+    //AP_GROUPINFO("FLOW_I_GATE", 22, NavEKF2, _flowInnovGate, FLOW_I_GATE_DEFAULT),
 
     // @Param: FLOW_DELAY
     // @DisplayName: Optical Flow measurement delay (msec)
@@ -326,7 +326,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @User: Advanced
     // @Units: ms
     // @RebootRequired: True
-    AP_GROUPINFO("FLOW_DELAY", 23, NavEKF2, _flowDelay_ms, FLOW_MEAS_DELAY),
+    //AP_GROUPINFO("FLOW_DELAY", 23, NavEKF2, _flowDelay_ms, FLOW_MEAS_DELAY),
 
     // State and Covariance Predition Parameters
 
@@ -481,7 +481,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     // @Units: %
-    AP_GROUPINFO("RNG_USE_HGT", 42, NavEKF2, _useRngSwHgt, -1),
+    //AP_GROUPINFO("RNG_USE_HGT", 42, NavEKF2, _useRngSwHgt, -1),
 
     // @Param: TERR_GRAD
     // @DisplayName: Maximum terrain gradient
@@ -525,7 +525,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     // @Increment: 0.5
     // @User: Advanced
     // @Units: m/s
-    AP_GROUPINFO("RNG_USE_SPD", 47, NavEKF2, _useRngSwSpd, 2.0f),
+    //AP_GROUPINFO("RNG_USE_SPD", 47, NavEKF2, _useRngSwSpd, 2.0f),
 
     // @Param: MAG_MASK
     // @DisplayName: Bitmask of active EKF cores that will always use heading fusion
@@ -556,9 +556,8 @@ const AP_Param::GroupInfo NavEKF2::var_info[] = {
     AP_GROUPEND
 };
 
-NavEKF2::NavEKF2(const AP_AHRS *ahrs, const RangeFinder &rng) :
-    _ahrs(ahrs),
-    _rng(rng)
+NavEKF2::NavEKF2(const AP_AHRS *ahrs) :
+    _ahrs(ahrs)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }

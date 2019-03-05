@@ -112,7 +112,6 @@ public:
         k_param_takeoff_rotate_speed,
         k_param_takeoff_throttle_slewrate,
         k_param_takeoff_throttle_max,
-        k_param_rangefinder,
         k_param_terrain,
         k_param_terrain_follow,
         k_param_stab_pitch_down_cd_old, // deprecated
@@ -120,7 +119,6 @@ public:
         k_param_stab_pitch_down,
         k_param_terrain_lookahead,
         k_param_fbwa_tdrag_chan,
-        k_param_rangefinder_landing,
         k_param_land_flap_percent,  // unused - moved to AP_Landing
         k_param_takeoff_flap_percent,
         k_param_flap_slewrate,
@@ -480,7 +478,6 @@ public:
     AP_Int16 glide_slope_min;
     AP_Float glide_slope_threshold;
     AP_Int8 fbwa_tdrag_chan;
-    AP_Int8 rangefinder_landing;
     AP_Int8 flap_slewrate;
 #if HAL_WITH_IO_MCU
     AP_Int8 override_channel;

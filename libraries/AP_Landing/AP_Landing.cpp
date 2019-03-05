@@ -195,18 +195,18 @@ void AP_Landing::do_land(const AP_Mission::Mission_Command& cmd, const float rel
   final flare
  */
 bool AP_Landing::verify_land(const Location &prev_WP_loc, Location &next_WP_loc, const Location &current_loc,
-        const float height, const float sink_rate, const float wp_proportion, const uint32_t last_flying_ms, const bool is_armed, const bool is_flying, const bool rangefinder_state_in_range)
+        const float height, const float sink_rate, const float wp_proportion, const uint32_t last_flying_ms, const bool is_armed, const bool is_flying)
 {
     bool success = true;
 
     switch (type) {
     case TYPE_STANDARD_GLIDE_SLOPE:
         success = type_slope_verify_land(prev_WP_loc, next_WP_loc, current_loc,
-                height, sink_rate, wp_proportion, last_flying_ms, is_armed, is_flying, rangefinder_state_in_range);
+                height, sink_rate, wp_proportion, last_flying_ms, is_armed, is_flying);
         break;
     case TYPE_DEEPSTALL:
         success = deepstall.verify_land(prev_WP_loc, next_WP_loc, current_loc,
-                                             height, sink_rate, wp_proportion, last_flying_ms, is_armed, is_flying, rangefinder_state_in_range);
+                                             height, sink_rate, wp_proportion, last_flying_ms, is_armed, is_flying);
         break;
     default:
         // returning TRUE while executing verify_land() will increment the

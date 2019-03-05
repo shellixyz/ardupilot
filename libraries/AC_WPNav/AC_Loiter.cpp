@@ -299,12 +299,6 @@ void AC_Loiter::calc_desired_velocity(float nav_dt)
         desired_vel.y = desired_vel.y * gnd_speed_limit_cms / horizSpdDem;
     }
 
-    // Limit the velocity to prevent fence violations
-    // TODO: We need to also limit the _desired_accel
-    if (_avoid != nullptr) {
-        _avoid->adjust_velocity(_pos_control.get_pos_xy_p().kP(), _accel_cmss, desired_vel, nav_dt);
-    }
-
     // send adjusted feed forward acceleration and velocity back to the Position Controller
     _pos_control.set_desired_accel_xy(_desired_accel.x, _desired_accel.y);
     _pos_control.set_desired_velocity_xy(desired_vel.x, desired_vel.y);

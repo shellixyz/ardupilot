@@ -776,25 +776,6 @@ void NavEKF2_core::FuseVelPosNED()
 // select the height measurement to be fused from the available baro, range finder and GPS sources
 void NavEKF2_core::selectHeightForFusion()
 {
-    // Read range finder data and check for new data in the buffer
-    // This data is used by both height and optical flow fusion processing
-    readRangeFinder();
-    rangeDataToFuse = storedRange.recall(rangeDataDelayed,imuDataDelayed.time_ms);
-
-    // correct range data for the body frame position offset relative to the IMU
-    // the corrected reading is the reading that would have been taken if the sensor was
-    // co-located with the IMU
-    if (rangeDataToFuse) {
-        AP_RangeFinder_Backend *sensor = frontend->_rng.get_backend(rangeDataDelayed.sensor_idx);
-        if (sensor != nullptr) {
-            Vector3f posOffsetBody = sensor->get_pos_offset() - accelPosOffset;
-            if (!posOffsetBody.is_zero()) {
-                Vector3f posOffsetEarth = prevTnb.mul_transpose(posOffsetBody);
-                rangeDataDelayed.rng += posOffsetEarth.z / prevTnb.c.z;
-            }
-        }
-    }
-
     // read baro height data from the sensor and check for new data in the buffer
     readBaroData();
     baroDataToFuse = storedBaro.recall(baroDataDelayed, imuDataDelayed.time_ms);
@@ -803,41 +784,6 @@ void NavEKF2_core::selectHeightForFusion()
     if (extNavUsedForPos) {
         // always use external vision as the height source if using for position.
         activeHgtSource = HGT_SOURCE_EV;
-    } else if (((frontend->_useRngSwHgt > 0) || (frontend->_altSource == 1)) && (imuSampleTime_ms - rngValidMeaTime_ms < 500)) {
-        if (frontend->_altSource == 1) {
-            // always use range finder
-            activeHgtSource = HGT_SOURCE_RNG;
-        } else {
-            // determine if we are above or below the height switch region
-            float rangeMaxUse = 1e-4f * (float)frontend->_rng.max_distance_cm_orient(ROTATION_PITCH_270) * (float)frontend->_useRngSwHgt;
-            bool aboveUpperSwHgt = (terrainState - stateStruct.position.z) > rangeMaxUse;
-            bool belowLowerSwHgt = (terrainState - stateStruct.position.z) < 0.7f * rangeMaxUse;
-
-            // If the terrain height is consistent and we are moving slowly, then it can be
-            // used as a height reference in combination with a range finder
-            // apply a hysteresis to the speed check to prevent rapid switching
-            float horizSpeed = norm(stateStruct.velocity.x, stateStruct.velocity.y);
-            bool dontTrustTerrain = ((horizSpeed > frontend->_useRngSwSpd) && filterStatus.flags.horiz_vel) || !terrainHgtStable;
-            float trust_spd_trigger = MAX((frontend->_useRngSwSpd - 1.0f),(frontend->_useRngSwSpd * 0.5f));
-            bool trustTerrain = (horizSpeed < trust_spd_trigger) && terrainHgtStable;
-
-            /*
-             * Switch between range finder and primary height source using height above ground and speed thresholds with
-             * hysteresis to avoid rapid switching. Using range finder for height requires a consistent terrain height
-             * which cannot be assumed if the vehicle is moving horizontally.
-            */
-            if ((aboveUpperSwHgt || dontTrustTerrain) && (activeHgtSource == HGT_SOURCE_RNG)) {
-                // cannot trust terrain or range finder so stop using range finder height
-                if (frontend->_altSource == 0) {
-                    activeHgtSource = HGT_SOURCE_BARO;
-                } else if (frontend->_altSource == 2) {
-                    activeHgtSource = HGT_SOURCE_GPS;
-                }
-            } else if (belowLowerSwHgt && trustTerrain && (activeHgtSource != HGT_SOURCE_RNG)) {
-                // reliable terrain and range finder so start using range finder height
-                activeHgtSource = HGT_SOURCE_RNG;
-            }
-        }
     } else if ((frontend->_altSource == 2) && ((imuSampleTime_ms - lastTimeGpsReceived_ms) < 500) && validOrigin && gpsAccuracyGood) {
         activeHgtSource = HGT_SOURCE_GPS;
     } else if ((frontend->_altSource == 3) && validOrigin && rngBcnGoodToAlign) {
@@ -847,10 +793,9 @@ void NavEKF2_core::selectHeightForFusion()
     }
 
     // Use Baro alt as a fallback if we lose range finder, GPS or external nav
-    bool lostRngHgt = ((activeHgtSource == HGT_SOURCE_RNG) && ((imuSampleTime_ms - rngValidMeaTime_ms) > 500));
     bool lostGpsHgt = ((activeHgtSource == HGT_SOURCE_GPS) && ((imuSampleTime_ms - lastTimeGpsReceived_ms) > 2000));
     bool lostExtNavHgt = ((activeHgtSource == HGT_SOURCE_EV) && ((imuSampleTime_ms - extNavMeasTime_ms) > 2000));
-    if (lostRngHgt || lostGpsHgt || lostExtNavHgt) {
+    if (lostGpsHgt || lostExtNavHgt) {
         activeHgtSource = HGT_SOURCE_BARO;
     }
 
@@ -884,25 +829,6 @@ void NavEKF2_core::selectHeightForFusion()
     if (extNavDataToFuse && (activeHgtSource == HGT_SOURCE_EV)) {
         hgtMea = -extNavDataDelayed.pos.z;
         posDownObsNoise = sq(constrain_float(extNavDataDelayed.posErr, 0.01f, 10.0f));
-    } else if (rangeDataToFuse && (activeHgtSource == HGT_SOURCE_RNG)) {
-        // using range finder data
-        // correct for tilt using a flat earth model
-        if (prevTnb.c.z >= 0.7) {
-            // calculate height above ground
-            hgtMea  = MAX(rangeDataDelayed.rng * prevTnb.c.z, rngOnGnd);
-            // correct for terrain position relative to datum
-            hgtMea -= terrainState;
-            // enable fusion
-            fuseHgtData = true;
-            velPosObs[5] = -hgtMea;
-            // set the observation noise
-            posDownObsNoise = sq(constrain_float(frontend->_rngNoise, 0.1f, 10.0f));
-            // add uncertainty created by terrain gradient and vehicle tilt
-            posDownObsNoise += sq(rangeDataDelayed.rng * frontend->_terrGradMax) * MAX(0.0f , (1.0f - sq(prevTnb.c.z)));
-        } else {
-            // disable fusion if tilted too far
-            fuseHgtData = false;
-        }
     } else if  (gpsDataToFuse && (activeHgtSource == HGT_SOURCE_GPS)) {
         // using GPS data
         hgtMea = gpsDataDelayed.hgt;

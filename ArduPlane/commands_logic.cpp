@@ -204,9 +204,9 @@ bool Plane::verify_command(const AP_Mission::Mission_Command& cmd)        // Ret
 
         } else {
             // use rangefinder to correct if possible
-            const float height = height_above_target() - rangefinder_correction();
+            const float height = height_above_target();
             return landing.verify_land(prev_WP_loc, next_WP_loc, current_loc,
-                height, auto_state.sink_rate, auto_state.wp_proportion, auto_state.last_flying_ms, arming.is_armed(), is_flying(), rangefinder_state.in_range);
+                height, auto_state.sink_rate, auto_state.wp_proportion, auto_state.last_flying_ms, arming.is_armed(), is_flying());
         }
 
     case MAV_CMD_NAV_LOITER_UNLIM:
@@ -339,9 +339,6 @@ void Plane::do_land(const AP_Mission::Mission_Command& cmd)
         // If no takeoff command has ever been used, default to a conservative 10deg
         auto_state.takeoff_pitch_cd = 1000;
     }
-
-    // zero rangefinder state, start to accumulate good samples now
-    memset(&rangefinder_state, 0, sizeof(rangefinder_state));
 
     landing.do_land(cmd, relative_altitude);
 

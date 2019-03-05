@@ -189,17 +189,6 @@ void GCS_Plane::update_sensor_status_flags(void)
         control_sensors_health &= ~MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
 
-    const RangeFinder *rangefinder = RangeFinder::get_singleton();
-    if (rangefinder && rangefinder->has_orientation(ROTATION_PITCH_270)) {
-        control_sensors_present |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        if (plane.g.rangefinder_landing) {
-            control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        }
-        if (rangefinder->has_data_orient(ROTATION_PITCH_270)) {
-            control_sensors_health |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;            
-        }
-    }
-
     if (plane.have_reverse_thrust() && SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) < 0) {
         control_sensors_enabled |= MAV_SYS_STATUS_REVERSE_MOTOR;
         control_sensors_health |= MAV_SYS_STATUS_REVERSE_MOTOR;

@@ -1084,7 +1084,6 @@ void GCS_MAVLINK_Plane::handleMessage(mavlink_message_t* msg)
     }
 
     case MAVLINK_MSG_ID_DISTANCE_SENSOR:
-        plane.rangefinder.handle_msg(msg);
         break;
 
     case MAVLINK_MSG_ID_TERRAIN_DATA:

@@ -162,27 +162,6 @@ struct PACKED log_Sonar {
     float correction;
 };
 
-// Write a sonar packet
-void Plane::Log_Write_Sonar()
-{
-    uint16_t distance = 0;
-    if (rangefinder.status_orient(ROTATION_PITCH_270) == RangeFinder::RangeFinder_Good) {
-        distance = rangefinder.distance_cm_orient(ROTATION_PITCH_270);
-    }
-
-    struct log_Sonar pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_SONAR_MSG),
-        time_us     : AP_HAL::micros64(),
-        distance    : (float)distance*0.01f,
-        voltage     : rangefinder.voltage_mv_orient(ROTATION_PITCH_270)*0.001f,
-        count       : rangefinder_state.in_range_count,
-        correction  : rangefinder_state.correction
-    };
-    logger.WriteBlock(&pkt, sizeof(pkt));
-
-    logger.Write_RFND(rangefinder);
-}
-
 struct PACKED log_Arm_Disarm {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -295,7 +274,6 @@ void Plane::Log_Write_Startup(uint8_t type) {}
 void Plane::Log_Write_Control_Tuning() {}
 void Plane::Log_Write_Nav_Tuning() {}
 void Plane::Log_Write_Status() {}
-void Plane::Log_Write_Sonar() {}
 
 void Plane::Log_Arm_Disarm() {}
 void Plane::Log_Write_RC(void) {}

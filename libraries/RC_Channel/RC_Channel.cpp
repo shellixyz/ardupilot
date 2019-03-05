@@ -29,7 +29,6 @@ extern const AP_HAL::HAL& hal;
 
 #include <GCS_MAVLink/GCS.h>
 
-#include <AC_Avoidance/AC_Avoid.h>
 #include <AC_Sprayer/AC_Sprayer.h>
 #include <AP_Gripper/AP_Gripper.h>
 #include <AP_LandingGear/AP_LandingGear.h>
@@ -490,26 +489,6 @@ void RC_Channel::read_aux()
 }
 
 
-void RC_Channel::do_aux_function_avoid_proximity(const aux_switch_pos_t ch_flag)
-{
-    AC_Avoid *avoid = AP::ac_avoid();
-    if (avoid == nullptr) {
-        return;
-    }
-
-    switch (ch_flag) {
-    case HIGH:
-        avoid->proximity_avoidance_enable(true);
-        break;
-    case MIDDLE:
-        // nothing
-        break;
-    case LOW:
-        avoid->proximity_avoidance_enable(false);
-        break;
-    }
-}
-
 void RC_Channel::do_aux_function_clear_wp(const aux_switch_pos_t ch_flag)
 {
     AP_Mission *mission = AP::mission();
@@ -612,7 +591,6 @@ void RC_Channel::do_aux_function(const aux_func_t ch_option, const aux_switch_po
         break;
 
     case AVOID_PROXIMITY:
-        do_aux_function_avoid_proximity(ch_flag);
         break;
 
     case RELAY:

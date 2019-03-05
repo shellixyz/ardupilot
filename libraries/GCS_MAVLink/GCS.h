@@ -188,11 +188,6 @@ public:
     void send_battery_status(const AP_BattMonitor &battery,
                              const uint8_t instance) const;
     bool send_battery_status() const;
-    void send_distance_sensor() const;
-    // send_rangefinder sends only if a downward-facing instance is
-    // found.  Rover overrides this!
-    virtual void send_rangefinder() const;
-    void send_proximity() const;
     virtual void send_nav_controller_output() const = 0;
     void send_ahrs2();
     void send_ahrs3();

@@ -183,7 +183,7 @@ void AP_Landing_Deepstall::verify_abort_landing(const Location &prev_WP_loc, Loc
  */
 bool AP_Landing_Deepstall::verify_land(const Location &prev_WP_loc, Location &next_WP_loc, const Location &current_loc,
         const float height, const float sink_rate, const float wp_proportion, const uint32_t last_flying_ms,
-        const bool is_armed, const bool is_flying, const bool rangefinder_state_in_range)
+        const bool is_armed, const bool is_flying)
 {
     switch (stage) {
     case DEEPSTALL_STAGE_FLY_TO_LANDING:

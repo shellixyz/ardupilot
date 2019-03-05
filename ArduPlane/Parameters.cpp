@@ -891,14 +891,14 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Group: RNGFND
     // @Path: ../libraries/AP_RangeFinder/RangeFinder.cpp
-    GOBJECT(rangefinder,            "RNGFND", RangeFinder),
+    //GOBJECT(rangefinder,            "RNGFND", RangeFinder),
 
     // @Param: RNGFND_LANDING
     // @DisplayName: Enable rangefinder for landing
     // @Description: This enables the use of a rangefinder for automatic landing. The rangefinder will be used both on the landing approach and for final flare
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
-    GSCALAR(rangefinder_landing,    "RNGFND_LANDING",   0),
+    //GSCALAR(rangefinder_landing,    "RNGFND_LANDING",   0),
 
     // @Group: ADSB_
     // @Path: ../libraries/AP_ADSB/AP_ADSB.cpp

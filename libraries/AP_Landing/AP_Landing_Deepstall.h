@@ -93,7 +93,7 @@ private:
     void verify_abort_landing(const Location &prev_WP_loc, Location &next_WP_loc, bool &throttle_suppressed);
     bool verify_land(const Location &prev_WP_loc, Location &next_WP_loc, const Location &current_loc,
             const float height, const float sink_rate, const float wp_proportion, const uint32_t last_flying_ms,
-            const bool is_armed, const bool is_flying, const bool rangefinder_state_in_range);
+            const bool is_armed, const bool is_flying);
     void setup_landing_glide_slope(const Location &prev_WP_loc, const Location &next_WP_loc,
             const Location &current_loc, int32_t &target_altitude_offset_cm);
     bool override_servos(void);

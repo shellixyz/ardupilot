@@ -17,7 +17,6 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Vehicle/AP_Vehicle.h>
-#include <AP_RangeFinder/RangeFinder_Backend.h>
 #include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_Gripper/AP_Gripper.h>
 #include <AP_BLHeli/AP_BLHeli.h>
@@ -259,133 +258,6 @@ bool GCS_MAVLINK::send_battery_status() const
         send_battery_status(battery, i);
     }
     return true;
-}
-
-void GCS_MAVLINK::send_distance_sensor(const AP_RangeFinder_Backend *sensor, const uint8_t instance) const
-{
-    if (!sensor->has_data()) {
-        return;
-    }
-
-    mavlink_msg_distance_sensor_send(
-        chan,
-        AP_HAL::millis(),                        // time since system boot TODO: take time of measurement
-        sensor->min_distance_cm(),               // minimum distance the sensor can measure in centimeters
-        sensor->max_distance_cm(),               // maximum distance the sensor can measure in centimeters
-        sensor->distance_cm(),                   // current distance reading
-        sensor->get_mav_distance_sensor_type(),  // type from MAV_DISTANCE_SENSOR enum
-        instance,                                // onboard ID of the sensor == instance
-        sensor->orientation(),                   // direction the sensor faces from MAV_SENSOR_ORIENTATION enum
-        0,                                       // Measurement covariance in centimeters, 0 for unknown / invalid readings
-        0,                                       // horizontal FOV
-        0,                                       // vertical FOV
-        (const float *)nullptr);                 // quaternion of sensor orientation for MAV_SENSOR_ROTATION_CUSTOM
-}
-// send any and all distance_sensor messages.  This starts by sending
-// any distance sensors not used by a Proximity sensor, then sends the
-// proximity sensor ones.
-void GCS_MAVLINK::send_distance_sensor() const
-{
-    RangeFinder *rangefinder = RangeFinder::get_singleton();
-    if (rangefinder == nullptr) {
-        return;
-    }
-
-    // if we have a proximity backend that utilizes rangefinders cull
-    // sending them here, and allow the later proximity code to manage
-    // them
-    bool filter_possible_proximity_sensors = false;
-    AP_Proximity *proximity = AP_Proximity::get_singleton();
-    if (proximity != nullptr) {
-        for (uint8_t i = 0; i < proximity->num_sensors(); i++) {
-            if (proximity->get_type(i) == AP_Proximity::Proximity_Type_RangeFinder) {
-                filter_possible_proximity_sensors = true;
-            }
-        }
-    }
-
-    for (uint8_t i = 0; i < RANGEFINDER_MAX_INSTANCES; i++) {
-        if (!HAVE_PAYLOAD_SPACE(chan, DISTANCE_SENSOR)) {
-            return;
-        }
-        AP_RangeFinder_Backend *sensor = rangefinder->get_backend(i);
-        if (sensor == nullptr) {
-            continue;
-        }
-        enum Rotation orient = sensor->orientation();
-        if (!filter_possible_proximity_sensors ||
-            (orient > ROTATION_YAW_315 && orient != ROTATION_PITCH_90)) {
-            send_distance_sensor(sensor, i);
-        }
-    }
-
-    send_proximity();
-}
-
-void GCS_MAVLINK::send_rangefinder() const
-{
-    RangeFinder *rangefinder = RangeFinder::get_singleton();
-    if (rangefinder == nullptr) {
-        return;
-    }
-    AP_RangeFinder_Backend *s = rangefinder->find_instance(ROTATION_PITCH_270);
-    if (s == nullptr) {
-        return;
-    }
-    mavlink_msg_rangefinder_send(
-            chan,
-            s->distance_cm() * 0.01f,
-            s->voltage_mv() * 0.001f);
-}
-
-void GCS_MAVLINK::send_proximity() const
-{
-    AP_Proximity *proximity = AP_Proximity::get_singleton();
-    if (proximity == nullptr || proximity->get_status() == AP_Proximity::Proximity_NotConnected) {
-        return; // this is wrong, but pretend we sent data and don't requeue
-    }
-
-    const uint16_t dist_min = (uint16_t)(proximity->distance_min() * 100.0f); // minimum distance the sensor can measure in centimeters
-    const uint16_t dist_max = (uint16_t)(proximity->distance_max() * 100.0f); // maximum distance the sensor can measure in centimeters
-    // send horizontal distances
-    AP_Proximity::Proximity_Distance_Array dist_array;
-    if (proximity->get_horizontal_distances(dist_array)) {
-        for (uint8_t i = 0; i < PROXIMITY_MAX_DIRECTION; i++) {
-            if (!HAVE_PAYLOAD_SPACE(chan, DISTANCE_SENSOR)) {
-                return;
-            }
-            mavlink_msg_distance_sensor_send(
-                    chan,
-                    AP_HAL::millis(),                               // time since system boot
-                    dist_min,                                       // minimum distance the sensor can measure in centimeters
-                    dist_max,                                       // maximum distance the sensor can measure in centimeters
-                    (uint16_t)(dist_array.distance[i] * 100.0f),    // current distance reading
-                    MAV_DISTANCE_SENSOR_LASER,                      // type from MAV_DISTANCE_SENSOR enum
-                    PROXIMITY_SENSOR_ID_START + i,                  // onboard ID of the sensor
-                    dist_array.orientation[i],                      // direction the sensor faces from MAV_SENSOR_ORIENTATION enum
-                    0,                                              // Measurement covariance in centimeters, 0 for unknown / invalid readings
-                    0, 0, nullptr);
-        }
-    }
-
-    // send upward distance
-    float dist_up;
-    if (proximity->get_upward_distance(dist_up)) {
-        if (!HAVE_PAYLOAD_SPACE(chan, DISTANCE_SENSOR)) {
-            return;
-        }
-        mavlink_msg_distance_sensor_send(
-                chan,
-                AP_HAL::millis(),                                         // time since system boot
-                dist_min,                                                 // minimum distance the sensor can measure in centimeters
-                dist_max,                                                 // maximum distance the sensor can measure in centimeters
-                (uint16_t)(dist_up * 100.0f),                             // current distance reading
-                MAV_DISTANCE_SENSOR_LASER,                                // type from MAV_DISTANCE_SENSOR enum
-                PROXIMITY_SENSOR_ID_START + PROXIMITY_MAX_DIRECTION + 1,  // onboard ID of the sensor
-                MAV_SENSOR_ROTATION_PITCH_90,                             // direction upwards
-                0,                                                        // Measurement covariance in centimeters, 0 for unknown / invalid readings
-                0, 0, nullptr);
-    }
 }
 
 // report AHRS2 state
@@ -3841,12 +3713,9 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_RANGEFINDER:
-        CHECK_PAYLOAD_SIZE(RANGEFINDER);
-        send_rangefinder();
         break;
 
     case MSG_DISTANCE_SENSOR:
-        send_distance_sensor();
         break;
 
     case MSG_CAMERA_FEEDBACK:

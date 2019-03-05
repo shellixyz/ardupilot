@@ -41,7 +41,6 @@
 #include <AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
 #include <AP_AHRS/AP_AHRS.h>         // ArduPilot Mega DCM Library
 #include <SRV_Channel/SRV_Channel.h>
-#include <AP_RangeFinder/AP_RangeFinder.h>     // Range finder library
 #include <Filter/Filter.h>                     // Filter library
 #include <AP_Relay/AP_Relay.h>       // APM relay
 #include <AP_Camera/AP_Camera.h>          // Photo or video camera
@@ -185,15 +184,11 @@ private:
 
     AP_InertialSensor ins;
 
-    RangeFinder rangefinder{serial_manager, ROTATION_PITCH_270};
-
-    AP_Vehicle::FixedWing::Rangefinder_State rangefinder_state;
-
     AP_RPM rpm_sensor;
 
 // Inertial Navigation EKF
 #if AP_AHRS_NAVEKF_AVAILABLE
-    NavEKF2 EKF2{&ahrs, rangefinder};
+    NavEKF2 EKF2{&ahrs};
     AP_AHRS_NavEKF ahrs{EKF2};
 #else
     AP_AHRS_DCM ahrs;
@@ -750,7 +745,6 @@ private:
     void Log_Write_Control_Tuning();
     void Log_Write_Nav_Tuning();
     void Log_Write_Status();
-    void Log_Write_Sonar();
     void Log_Arm_Disarm();
     void Log_Write_RC(void);
     void Log_Write_Vehicle_Startup_Messages();
@@ -762,7 +756,7 @@ private:
     void adjust_altitude_target();
     void setup_glide_slope(void);
     int32_t get_RTL_altitude();
-    float relative_ground_altitude(bool use_rangefinder_if_available);
+    float relative_ground_altitude();
     void set_target_altitude_current(void);
     void set_target_altitude_current_adjusted(void);
     void set_target_altitude_location(const Location &loc);
@@ -779,8 +773,6 @@ private:
     int32_t adjusted_relative_altitude_cm(void);
     float mission_alt_offset(void);
     float height_above_target(void);
-    float rangefinder_correction(void);
-    void rangefinder_height_update(void);
     void set_next_WP(const struct Location &loc);
     void set_guided_WP(void);
     void update_home();
@@ -854,7 +846,6 @@ private:
     void control_failsafe();
     bool trim_radio();
     bool rc_failsafe_active(void) const;
-    void read_rangefinder(void);
     void read_airspeed(void);
     void rpm_update(void);
     void init_ardupilot();
