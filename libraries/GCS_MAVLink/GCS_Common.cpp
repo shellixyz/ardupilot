@@ -21,7 +21,6 @@
 #include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_Common/Semaphore.h>
 #include <AP_Scheduler/AP_Scheduler.h>
-#include <AP_VisualOdom/AP_VisualOdom.h>
 
 #include "GCS.h"
 
@@ -2519,138 +2518,6 @@ void GCS_MAVLINK::handle_data_packet(mavlink_message_t *msg)
 #endif
 }
 
-void GCS_MAVLINK::handle_vision_position_delta(mavlink_message_t *msg)
-{
-    AP_VisualOdom *visual_odom = AP::visualodom();
-    if (visual_odom == nullptr) {
-        return;
-    }
-    visual_odom->handle_msg(msg);
-}
-
-void GCS_MAVLINK::handle_vision_position_estimate(mavlink_message_t *msg)
-{
-    mavlink_vision_position_estimate_t m;
-    mavlink_msg_vision_position_estimate_decode(msg, &m);
-
-    handle_common_vision_position_estimate_data(m.usec, m.x, m.y, m.z, m.roll, m.pitch, m.yaw,
-                                                PAYLOAD_SIZE(chan, VISION_POSITION_ESTIMATE));
-}
-
-void GCS_MAVLINK::handle_global_vision_position_estimate(mavlink_message_t *msg)
-{
-    mavlink_global_vision_position_estimate_t m;
-    mavlink_msg_global_vision_position_estimate_decode(msg, &m);
-
-    handle_common_vision_position_estimate_data(m.usec, m.x, m.y, m.z, m.roll, m.pitch, m.yaw,
-                                                PAYLOAD_SIZE(chan, GLOBAL_VISION_POSITION_ESTIMATE));
-}
-
-void GCS_MAVLINK::handle_vicon_position_estimate(mavlink_message_t *msg)
-{
-    mavlink_vicon_position_estimate_t m;
-    mavlink_msg_vicon_position_estimate_decode(msg, &m);
-
-    handle_common_vision_position_estimate_data(m.usec, m.x, m.y, m.z, m.roll, m.pitch, m.yaw,
-                                                PAYLOAD_SIZE(chan, VICON_POSITION_ESTIMATE));
-}
-
-// there are several messages which all have identical fields in them.
-// This function provides common handling for the data contained in
-// these packets
-void GCS_MAVLINK::handle_common_vision_position_estimate_data(const uint64_t usec,
-                                                              const float x,
-                                                              const float y,
-                                                              const float z,
-                                                              const float roll,
-                                                              const float pitch,
-                                                              const float yaw,
-                                                              const uint16_t payload_size)
-{
-    // correct offboard timestamp to be in local ms since boot
-    uint32_t timestamp_ms = correct_offboard_timestamp_usec_to_ms(usec, payload_size);
-    
-    // sensor assumed to be at 0,0,0 body-frame; need parameters for this?
-    // or a new message 
-    const Vector3f sensor_offset = {};
-    const Vector3f pos = {
-        x,
-        y,
-        z
-    };
-    Quaternion attitude;
-    attitude.from_euler(roll, pitch, yaw); // from_vector312?
-    const float posErr = 0; // parameter required?
-    const float angErr = 0; // parameter required?
-    const uint32_t reset_timestamp_ms = 0; // no data available
-
-    AP::ahrs().writeExtNavData(sensor_offset,
-                               pos,
-                               attitude,
-                               posErr,
-                               angErr,
-                               timestamp_ms,
-                               reset_timestamp_ms);
-
-    log_vision_position_estimate_data(usec, x, y, z, roll, pitch, yaw);
-}
-
-void GCS_MAVLINK::log_vision_position_estimate_data(const uint64_t usec,
-                                                    const float x,
-                                                    const float y,
-                                                    const float z,
-                                                    const float roll,
-                                                    const float pitch,
-                                                    const float yaw)
-{
-    AP::logger().Write("VISP", "TimeUS,RemTimeUS,PX,PY,PZ,Roll,Pitch,Yaw",
-                                           "ssmmmddh", "FF000000", "QQffffff",
-                                           (uint64_t)AP_HAL::micros64(),
-                                           (uint64_t)usec,
-                                           (double)x,
-                                           (double)y,
-                                           (double)z,
-                                           (double)(roll * RAD_TO_DEG),
-                                           (double)(pitch * RAD_TO_DEG),
-                                           (double)(yaw * RAD_TO_DEG));
-}
-
-void GCS_MAVLINK::handle_att_pos_mocap(mavlink_message_t *msg)
-{
-    mavlink_att_pos_mocap_t m;
-    mavlink_msg_att_pos_mocap_decode(msg, &m);
-
-    // sensor assumed to be at 0,0,0 body-frame; need parameters for this?
-    const Vector3f sensor_offset = {};
-    const Vector3f pos = {
-        m.x,
-        m.y,
-        m.z
-    };
-    Quaternion attitude = Quaternion(m.q);
-    const float posErr = 0; // parameter required?
-    const float angErr = 0; // parameter required?
-    // correct offboard timestamp to be in local ms since boot
-    uint32_t timestamp_ms = correct_offboard_timestamp_usec_to_ms(m.time_usec, PAYLOAD_SIZE(chan, ATT_POS_MOCAP));
-    const uint32_t reset_timestamp_ms = 0; // no data available
-
-    AP::ahrs().writeExtNavData(sensor_offset,
-                               pos,
-                               attitude,
-                               posErr,
-                               angErr,
-                               timestamp_ms,
-                               reset_timestamp_ms);
-   
-    // calculate euler orientation for logging
-    float roll;
-    float pitch;
-    float yaw;
-    attitude.to_euler(roll, pitch, yaw);
-
-    log_vision_position_estimate_data(m.time_usec, m.x, m.y, m.z, roll, pitch, yaw);
-}
-
 void GCS_MAVLINK::handle_command_ack(const mavlink_message_t* msg)
 {
     AP_AccelCal *accelcal = AP::ins().get_acal();
@@ -2819,23 +2686,18 @@ void GCS_MAVLINK::handle_common_message(mavlink_message_t *msg)
         break;        
 
     case MAVLINK_MSG_ID_VISION_POSITION_DELTA:
-        handle_vision_position_delta(msg);
         break;
 
     case MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE:
-        handle_vision_position_estimate(msg);
         break;
 
     case MAVLINK_MSG_ID_GLOBAL_VISION_POSITION_ESTIMATE:
-        handle_global_vision_position_estimate(msg);
         break;
 
     case MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE:
-        handle_vicon_position_estimate(msg);
         break;
 
     case MAVLINK_MSG_ID_ATT_POS_MOCAP:
-        handle_att_pos_mocap(msg);
         break;
 
     case MAVLINK_MSG_ID_SYSTEM_TIME:
