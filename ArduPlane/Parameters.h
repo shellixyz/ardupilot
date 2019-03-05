@@ -477,10 +477,6 @@ public:
     AP_Float takeoff_pitch_limit_reduction_sec;
     AP_Int8 level_roll_limit;
     AP_Int8 flapin_channel;
-#if AP_TERRAIN_AVAILABLE
-    AP_Int8 terrain_follow;
-    AP_Int16 terrain_lookahead;
-#endif
     AP_Int16 glide_slope_min;
     AP_Float glide_slope_threshold;
     AP_Int8 fbwa_tdrag_chan;

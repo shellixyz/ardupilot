@@ -43,7 +43,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_RangeFinder',
     'AP_Scheduler',
     'AP_SerialManager',
-    'AP_Terrain',
+    #'AP_Terrain',
     'AP_Vehicle',
     'AP_Logger',
     'Filter',

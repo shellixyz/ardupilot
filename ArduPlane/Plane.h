@@ -46,7 +46,6 @@
 #include <AP_Relay/AP_Relay.h>       // APM relay
 #include <AP_Camera/AP_Camera.h>          // Photo or video camera
 #include <AP_Airspeed/AP_Airspeed.h>
-#include <AP_Terrain/AP_Terrain.h>
 #include <AP_RPM/AP_RPM.h>
 #include <AP_Stats/AP_Stats.h>     // statistics library
 #include <AP_Beacon/AP_Beacon.h>
@@ -604,11 +603,6 @@ private:
     AP_Parachute parachute{relay};
 #endif
 
-    // terrain handling
-#if AP_TERRAIN_AVAILABLE
-    AP_Terrain terrain{mission};
-#endif
-
     AP_Landing landing{mission,ahrs,SpdHgt_Controller,nav_controller,aparm,
             FUNCTOR_BIND_MEMBER(&Plane::set_target_altitude_proportion, void, const Location&, float),
             FUNCTOR_BIND_MEMBER(&Plane::constrain_target_altitude_location, void, const Location&, const Location&),
@@ -688,18 +682,6 @@ private:
         // Altitude difference between previous and current waypoint in
         // centimeters. Used for glide slope handling
         int32_t offset_cm;
-
-#if AP_TERRAIN_AVAILABLE
-        // are we trying to follow terrain?
-        bool terrain_following;
-
-        // target altitude above terrain in cm, valid if terrain_following
-        // is set
-        int32_t terrain_alt_cm;
-
-        // lookahead value for height error reporting
-        float lookahead;
-#endif
 
         // last input for FBWB/CRUISE height control
         float last_elevator_input;
@@ -795,12 +777,10 @@ private:
     void reset_offset_altitude(void);
     void set_offset_altitude_location(const Location &loc);
     bool above_location_current(const Location &loc);
-    void setup_terrain_target_alt(Location &loc);
     int32_t adjusted_altitude_cm(void);
     int32_t adjusted_relative_altitude_cm(void);
     float mission_alt_offset(void);
     float height_above_target(void);
-    float lookahead_adjustment(void);
     float rangefinder_correction(void);
     void rangefinder_height_update(void);
     void set_next_WP(const struct Location &loc);
