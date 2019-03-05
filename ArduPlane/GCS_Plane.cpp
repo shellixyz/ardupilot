@@ -108,7 +108,6 @@ void GCS_Plane::update_sensor_status_flags(void)
     case AUTO:
     case RTL:
     case LOITER:
-    case AVOID_ADSB:
     case GUIDED:
     case CIRCLE:
     case QRTL:
@@ -117,6 +116,9 @@ void GCS_Plane::update_sensor_status_flags(void)
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_YAW_POSITION; // yaw position
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL; // altitude control
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL; // X/Y position control
+        break;
+
+    case AVOID_ADSB:
         break;
 
     case INITIALISING:

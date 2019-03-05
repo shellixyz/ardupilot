@@ -35,7 +35,6 @@ void Plane::failsafe_short_on_event(enum failsafe_state fstype, mode_reason_t re
         break;
         
     case AUTO:
-    case AVOID_ADSB:
     case GUIDED:
     case LOITER:
         if(g.fs_action_short != FS_ACTION_SHORT_BESTGUESS) {
@@ -96,7 +95,6 @@ void Plane::failsafe_long_on_event(enum failsafe_state fstype, mode_reason_t rea
         break;
         
     case AUTO:
-    case AVOID_ADSB:
     case GUIDED:
     case LOITER:
         if(g.fs_action_long == FS_ACTION_LONG_PARACHUTE) {
@@ -163,11 +161,6 @@ void Plane::handle_battery_failsafe(const char *type_str, const int8_t action)
             break;
 
         case Failsafe_Action_Terminate:
-            char battery_type_str[17];
-            snprintf(battery_type_str, 17, "%s battery", type_str);
-            afs.gcs_terminate(true, battery_type_str);
-            break;
-
         case Failsafe_Action_None:
             // don't actually do anything, however we should still flag the system as having hit a failsafe
             // and ensure all appropriate flags are going off to the user

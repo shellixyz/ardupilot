@@ -58,12 +58,6 @@ bool AP_Arming_Plane::pre_arm_checks(bool display_failure)
         ret = false;
     }
 
-    // check adsb avoidance failsafe
-    if (plane.failsafe.adsb) {
-        check_failed(ARMING_CHECK_NONE, display_failure, "ADSB threat detected");
-        ret = false;
-    }
-
     return ret;
 }
 

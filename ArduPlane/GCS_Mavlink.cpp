@@ -20,6 +20,8 @@ MAV_MODE GCS_MAVLINK_Plane::base_mode() const
     // the APM flight mode and has a well defined meaning in the
     // ArduPlane documentation
     switch (plane.control_mode) {
+    case AVOID_ADSB:
+        break;
     case MANUAL:
     case TRAINING:
     case ACRO:
@@ -40,7 +42,6 @@ MAV_MODE GCS_MAVLINK_Plane::base_mode() const
     case AUTO:
     case RTL:
     case LOITER:
-    case AVOID_ADSB:
     case GUIDED:
     case CIRCLE:
     case QRTL:
@@ -401,11 +402,6 @@ bool GCS_MAVLINK_Plane::try_send_message(enum ap_message id)
         plane.send_rpm(chan);
         break;
 
-    case MSG_ADSB_VEHICLE:
-        CHECK_PAYLOAD_SIZE(ADSB_VEHICLE);
-        plane.adsb.send_adsb_vehicle(chan);
-        break;
-
     case MSG_AOA_SSA:
         CHECK_PAYLOAD_SIZE(AOA_SSA);
         plane.send_aoa_ssa(chan);
@@ -512,7 +508,7 @@ const AP_Param::GroupInfo GCS_MAVLINK::var_info[] = {
     // @Range: 0 50
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("ADSB",   9, GCS_MAVLINK, streamRates[9],  5),
+    //AP_GROUPINFO("ADSB",   9, GCS_MAVLINK, streamRates[9],  5),
     AP_GROUPEND
 };
 
@@ -586,9 +582,9 @@ static const ap_message STREAM_EXTRA3_msgs[] = {
 static const ap_message STREAM_PARAMS_msgs[] = {
     MSG_NEXT_PARAM
 };
-static const ap_message STREAM_ADSB_msgs[] = {
-    MSG_ADSB_VEHICLE
-};
+//static const ap_message STREAM_ADSB_msgs[] = {
+    //MSG_ADSB_VEHICLE
+//};
 
 const struct GCS_MAVLINK::stream_entries GCS_MAVLINK::all_stream_entries[] = {
     MAV_STREAM_ENTRY(STREAM_RAW_SENSORS),
@@ -600,7 +596,7 @@ const struct GCS_MAVLINK::stream_entries GCS_MAVLINK::all_stream_entries[] = {
     MAV_STREAM_ENTRY(STREAM_EXTRA2),
     MAV_STREAM_ENTRY(STREAM_EXTRA3),
     MAV_STREAM_ENTRY(STREAM_PARAMS),
-    MAV_STREAM_ENTRY(STREAM_ADSB),
+    //MAV_STREAM_ENTRY(STREAM_ADSB),
     MAV_STREAM_TERMINATOR // must have this at end of stream_entries
 };
 
@@ -675,7 +671,6 @@ MAV_RESULT GCS_MAVLINK_Plane::_handle_command_preflight_calibration(const mavlin
 void GCS_MAVLINK_Plane::packetReceived(const mavlink_status_t &status,
                                         mavlink_message_t &msg)
 {
-    plane.avoidance_adsb.handle_msg(msg);
     GCS_MAVLINK::packetReceived(status, msg);
 }
 
@@ -777,7 +772,7 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
         // controlled modes (e.g., MANUAL, TRAINING)
         // this command should be ignored since it comes in from GCS
         // or a companion computer:
-        if (plane.control_mode != GUIDED && plane.control_mode != AUTO && plane.control_mode != AVOID_ADSB) {
+        if (plane.control_mode != GUIDED && plane.control_mode != AUTO) {
             // failed
             return MAV_RESULT_FAILED;
         }
@@ -1113,7 +1108,7 @@ void GCS_MAVLINK_Plane::handleMessage(mavlink_message_t* msg)
         // in e.g., RTL, CICLE. Specifying a single mode for companion
         // computer control is more safe (even more so when using
         // FENCE_ACTION = 4 for geofence failures).
-        if (plane.control_mode != GUIDED && plane.control_mode != AVOID_ADSB) { // don't screw up failsafes
+        if (plane.control_mode != GUIDED) { // don't screw up failsafes
             break; 
         }
 
@@ -1223,7 +1218,7 @@ void GCS_MAVLINK_Plane::handleMessage(mavlink_message_t* msg)
         // in modes such as RTL, CIRCLE, etc.  Specifying ONLY one mode
         // for companion computer control is more safe (provided
         // one uses the FENCE_ACTION = 4 (RTL) for geofence failures).
-        if (plane.control_mode != GUIDED && plane.control_mode != AVOID_ADSB) {
+        if (plane.control_mode != GUIDED) {
             //don't screw up failsafes
             break;
         }
@@ -1267,13 +1262,6 @@ void GCS_MAVLINK_Plane::handleMessage(mavlink_message_t* msg)
 
         break;
     }
-
-    case MAVLINK_MSG_ID_ADSB_VEHICLE:
-    case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG:
-    case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_DYNAMIC:
-    case MAVLINK_MSG_ID_UAVIONIX_ADSB_TRANSCEIVER_HEALTH_REPORT:
-        plane.adsb.handle_message(chan, msg);
-        break;
 
     default:
         handle_common_message(msg);
@@ -1338,11 +1326,6 @@ void GCS_MAVLINK_Plane::handle_mission_set_current(AP_Mission &mission, mavlink_
     }
 }
 
-AP_AdvancedFailsafe *GCS_MAVLINK_Plane::get_advanced_failsafe() const
-{
-    return &plane.afs;
-}
-
 /*
   set_mode() wrapper for MAVLink SET_MODE
  */
@@ -1358,7 +1341,6 @@ bool GCS_MAVLINK_Plane::set_mode(const uint8_t mode)
     case AUTOTUNE:
     case FLY_BY_WIRE_B:
     case CRUISE:
-    case AVOID_ADSB:
     case GUIDED:
     case AUTO:
     case RTL:

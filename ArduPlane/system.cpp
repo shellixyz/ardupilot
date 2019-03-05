@@ -336,6 +336,8 @@ void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
     
     switch(control_mode)
     {
+    case AVOID_ADSB:
+        break;
     case INITIALISING:
         throttle_allows_nudging = true;
         auto_throttle_mode = true;
@@ -440,7 +442,6 @@ void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
 		
         break;
 
-    case AVOID_ADSB:
     case GUIDED:
         throttle_allows_nudging = true;
         auto_throttle_mode = true;
@@ -465,8 +466,6 @@ void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
 
     // start with throttle suppressed in auto_throttle modes
     throttle_suppressed = auto_throttle_mode;
-
-    adsb.set_is_auto_mode(auto_navigation_mode);
 
     logger.Write_Mode(control_mode, control_mode_reason);
 
@@ -655,9 +654,6 @@ void Plane::notify_flight_mode(enum FlightMode mode)
         break;
     case LOITER:
         notify.set_flight_mode_str("LOITER");
-        break;
-    case AVOID_ADSB:
-        notify.set_flight_mode_str("AVOI");
         break;
     case GUIDED:
         notify.set_flight_mode_str("GUID");

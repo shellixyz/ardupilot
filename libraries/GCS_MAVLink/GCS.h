@@ -365,7 +365,6 @@ protected:
     bool get_ap_message_interval(ap_message id, uint16_t &interval_ms) const;
 
     MAV_RESULT handle_rc_bind(const mavlink_command_long_t &packet);
-    virtual MAV_RESULT handle_flight_termination(const mavlink_command_long_t &packet);
 
     void handle_send_autopilot_version(const mavlink_message_t *msg);
     MAV_RESULT handle_command_request_autopilot_capabilities(const mavlink_command_long_t &packet);

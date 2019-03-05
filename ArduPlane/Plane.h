@@ -90,7 +90,6 @@
 #include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 #include <AP_RSSI/AP_RSSI.h>                   // RSSI Library
 #include <AP_Parachute/AP_Parachute.h>
-#include <AP_ADSB/AP_ADSB.h>
 #include <AP_Button/AP_Button.h>
 #include <AP_ICEngine/AP_ICEngine.h>
 #include <AP_Gripper/AP_Gripper.h>
@@ -113,31 +112,11 @@
 
 #include "RC_Channel.h"     // RC Channel Library
 #include "Parameters.h"
-#include "avoidance_adsb.h"
 #include "AP_Arming.h"
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
 #endif
-
-/*
-  a plane specific AP_AdvancedFailsafe class
- */
-class AP_AdvancedFailsafe_Plane : public AP_AdvancedFailsafe
-{
-public:
-    AP_AdvancedFailsafe_Plane(AP_Mission &_mission, const AP_GPS &_gps);
-
-    // called to set all outputs to termination state
-    void terminate_vehicle(void);
-    
-protected:
-    // setup failsafe values for if FMU firmware stops running
-    void setup_IO_failsafe(void);
-
-    // return the AFS mapped control mode
-    enum control_mode afs_mode(void);
-};
 
 /*
   main APM:Plane class
@@ -149,8 +128,6 @@ public:
     friend class ParametersG2;
     friend class AP_Arming_Plane;
     friend class AP_Tuning_Plane;
-    friend class AP_AdvancedFailsafe_Plane;
-    friend class AP_Avoidance_Plane;
     friend class GCS_Plane;
     friend class RC_Channel_Plane;
     friend class RC_Channels_Plane;
@@ -326,9 +303,6 @@ private:
         // has the saved mode for failsafe been set?
         bool saved_mode_set:1;
 
-        // true if an adsb related failsafe has occurred
-        bool adsb:1;
-
         // saved flight mode
         enum FlightMode saved_mode;
 
@@ -367,7 +341,7 @@ private:
     } vtol_approach_s;
 
     bool any_failsafe_triggered() {
-        return failsafe.state != FAILSAFE_NONE || battery.has_failsafed() || failsafe.adsb;
+        return failsafe.state != FAILSAFE_NONE || battery.has_failsafed();
     }
 
     // A counter used to count down valid gps fixes to allow the gps estimate to settle
@@ -642,14 +616,6 @@ private:
             FUNCTOR_BIND_MEMBER(&Plane::adjusted_relative_altitude_cm, int32_t),
             FUNCTOR_BIND_MEMBER(&Plane::disarm_if_autoland_complete, void),
             FUNCTOR_BIND_MEMBER(&Plane::update_flight_stage, void)};
-
-    AP_ADSB adsb;
-
-    // avoidance of adsb enabled vehicles (normally manned vheicles)
-    AP_Avoidance_Plane avoidance_adsb{ahrs, adsb};
-
-    // Outback Challenge Failsafe Support
-    AP_AdvancedFailsafe_Plane afs {mission, gps};
 
     /*
       meta data to support counting the number of circles in a loiter
@@ -940,7 +906,6 @@ private:
     void update_GPS_10Hz(void);
     void update_compass(void);
     void update_alt(void);
-    void afs_fs_check(void);
     void compass_cal_update();
     void update_optical_flow(void);
     void one_second_loop(void);
@@ -948,7 +913,6 @@ private:
     void compass_save(void);
     void update_logging1(void);
     void update_logging2(void);
-    void avoidance_adsb_update(void);
     void update_flight_mode(void);
     void stabilize();
     void set_servos_idle(void);
@@ -1039,10 +1003,6 @@ private:
     bool allow_reverse_thrust(void) const;
     bool have_reverse_thrust(void) const;
     int16_t get_throttle_input(bool no_deadzone=false) const;
-
-    // support for AP_Avoidance custom flight mode, AVOID_ADSB
-    bool avoid_adsb_init(bool ignore_checks);
-    void avoid_adsb_run();
 
     enum Failsafe_Action {
         Failsafe_Action_None      = 0,

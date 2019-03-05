@@ -47,7 +47,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK(read_airspeed,          10,    100),
     SCHED_TASK(update_alt,             10,    200),
     SCHED_TASK(adjust_altitude_target, 10,    200),
-    SCHED_TASK(afs_fs_check,           10,    100),
     SCHED_TASK_CLASS(GCS,            (GCS*)&plane._gcs,       update_receive,   300,  500),
     SCHED_TASK_CLASS(GCS,            (GCS*)&plane._gcs,       update_send,      300,  500),
     SCHED_TASK_CLASS(AP_ServoRelayEvents, &plane.ServoRelayEvents, update_events,          50,  150),
@@ -88,7 +87,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK_CLASS(AP_Logger, &plane.logger, periodic_tasks, 50, 400),
 #endif
     SCHED_TASK_CLASS(AP_InertialSensor, &plane.ins, periodic, 50, 50),
-    SCHED_TASK(avoidance_adsb_update,  10,    100),
     SCHED_TASK_CLASS(RC_Channels,       (RC_Channels*)&plane.g2.rc_channels, read_aux_all,           10,    200),
     SCHED_TASK_CLASS(AP_Button, &plane.g2.button, update, 5, 100),
 #if STATS_ENABLED == ENABLED
@@ -224,15 +222,6 @@ void Plane::update_logging2(void)
 }
 
 
-/*
-  check for AFS failsafe check
- */
-void Plane::afs_fs_check(void)
-{
-    // perform AFS failsafe checks
-    afs.check(failsafe.last_heartbeat_ms, geofence_breached(), failsafe.AFS_last_valid_rc_ms);
-}
-
 #if HAL_WITH_IO_MCU
 #include <AP_IOMCU/AP_IOMCU.h>
 extern AP_IOMCU iomcu;
@@ -252,9 +241,6 @@ void Plane::one_second_loop()
 
     // make it possible to change orientation at runtime
     ahrs.set_orientation();
-
-    adsb.set_stall_speed_cm(aparm.airspeed_min);
-    adsb.set_max_speed(aparm.airspeed_max);
 
     // sync MAVLink system ID
     mavlink_system.sysid = g.sysid_this_mav;
@@ -471,11 +457,12 @@ void Plane::update_flight_mode(void)
 
     switch (effective_mode) 
     {
+    case AVOID_ADSB:
+        break;
     case AUTO:
         handle_auto_mode();
         break;
 
-    case AVOID_ADSB:
     case GUIDED:
         FALLTHROUGH;
 
@@ -645,6 +632,8 @@ void Plane::update_navigation()
     }
     
     switch(control_mode) {
+    case AVOID_ADSB:
+        break;
     case AUTO:
         if (ahrs.home_is_set()) {
             mission.update();
@@ -686,7 +675,6 @@ void Plane::update_navigation()
         FALLTHROUGH;
 
     case LOITER:
-    case AVOID_ADSB:
     case GUIDED:
         update_loiter(radius);
         break;

@@ -2505,24 +2505,6 @@ MAV_RESULT GCS_MAVLINK::handle_preflight_reboot(const mavlink_command_long_t &pa
 }
 
 /*
-  handle a flight termination request
- */
-MAV_RESULT GCS_MAVLINK::handle_flight_termination(const mavlink_command_long_t &packet)
-{
-    AP_AdvancedFailsafe *failsafe = get_advanced_failsafe();
-    if (failsafe == nullptr) {
-        return MAV_RESULT_UNSUPPORTED;
-    }
-
-    bool should_terminate = packet.param1 > 0.5f;
-
-    if (failsafe->gcs_terminate(should_terminate, "GCS request")) {
-        return MAV_RESULT_ACCEPTED;
-    }
-    return MAV_RESULT_FAILED;
-}
-
-/*
   handle a R/C bind request (for spektrum)
  */
 MAV_RESULT GCS_MAVLINK::handle_rc_bind(const mavlink_command_long_t &packet)
@@ -3573,7 +3555,6 @@ MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t 
         break;
 
     case MAV_CMD_DO_FLIGHTTERMINATION:
-        result = handle_flight_termination(packet);
         break;
 
     default:

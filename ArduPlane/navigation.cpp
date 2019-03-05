@@ -209,7 +209,7 @@ void Plane::update_loiter(uint16_t radius)
             auto_state.wp_proportion > 1) {
             // we've reached the target, start the timer
             loiter.start_time_ms = millis();
-            if (control_mode == GUIDED || control_mode == AVOID_ADSB) {
+            if (control_mode == GUIDED) {
                 // starting a loiter in GUIDED means we just reached the target point
                 gcs().send_mission_item_reached_message(0);
             }

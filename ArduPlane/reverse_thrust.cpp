@@ -79,7 +79,6 @@ bool Plane::allow_reverse_thrust(void) const
     case FLY_BY_WIRE_B:
         allow |= (g.use_reverse_thrust & USE_REVERSE_THRUST_FBWB);
         break;
-    case AVOID_ADSB:
     case GUIDED:
         allow |= (g.use_reverse_thrust & USE_REVERSE_THRUST_GUIDED);
         break;

@@ -396,7 +396,7 @@ void Plane::set_servos_controlled(void)
         } else {
             SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, channel_throttle->get_control_in());
         }
-    } else if ((control_mode == GUIDED || control_mode == AVOID_ADSB) &&
+    } else if ((control_mode == GUIDED) &&
                guided_throttle_passthru) {
         // manual pass through of throttle while in GUIDED
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, get_throttle_input(true));
@@ -552,11 +552,6 @@ void Plane::servos_twin_engine_mix(void)
     float rud_gain = float(plane.g2.rudd_dt_gain) / 100;
     rudder_dt = rud_gain * SRV_Channels::get_output_scaled(SRV_Channel::k_rudder) / float(SERVO_MAX);
 
-    if (afs.should_crash_vehicle()) {
-        // when in AFS failsafe force rudder input for differential thrust to zero
-        rudder_dt = 0;
-    }
-
     float throttle_left, throttle_right;
 
     if (throttle < 0 && have_reverse_thrust() && allow_reverse_thrust()) {
@@ -606,14 +601,6 @@ void Plane::set_servos(void)
     // function
     SRV_Channels::cork();
     
-    // this is to allow the failsafe module to deliberately crash 
-    // the plane. Only used in extreme circumstances to meet the
-    // OBC rules
-    if (afs.should_crash_vehicle()) {
-        afs.terminate_vehicle();
-        return;
-    }
-
     if (control_mode == AUTO && auto_state.idle_mode) {
         // special handling for balloon launch
         set_servos_idle();

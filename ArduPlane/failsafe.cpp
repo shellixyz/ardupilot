@@ -41,12 +41,6 @@ void Plane::failsafe_check(void)
     if (in_failsafe && tnow - last_timestamp > 20000) {
         last_timestamp = tnow;
 
-        if (in_calibration) {
-            // tell the failsafe system that we are calibrating
-            // sensors, so don't trigger failsafe
-            afs.heartbeat();
-        }
-
         if (RC_Channels::get_valid_channel_count() < 5) {
             // we don't have any RC input to pass through
             return;
@@ -71,14 +65,6 @@ void Plane::failsafe_check(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, rudder);
         SRV_Channels::set_output_scaled(SRV_Channel::k_steering, rudder);
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, throttle);
-
-        // this is to allow the failsafe module to deliberately crash 
-        // the plane. Only used in extreme circumstances to meet the
-        // OBC rules
-        if (afs.should_crash_vehicle()) {
-            afs.terminate_vehicle();
-            return;
-        }
 
         // setup secondary output channels that do have
         // corresponding input channels
