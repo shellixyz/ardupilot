@@ -497,16 +497,10 @@ public:
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo var_info[];
 
-    // button reporting library
-    AP_Button button;
-
 #if STATS_ENABLED == ENABLED
     // vehicle statistics
     AP_Stats stats;
 #endif
-
-    // internal combustion engine control
-    AP_ICEngine ice_control;
 
     // RC input channels
     RC_Channels_Plane rc_channels;

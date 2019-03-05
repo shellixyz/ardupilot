@@ -1048,7 +1048,7 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Group: RPM
     // @Path: ../libraries/AP_RPM/AP_RPM.cpp
-    GOBJECT(rpm_sensor, "RPM", AP_RPM),
+    //GOBJECT(rpm_sensor, "RPM", AP_RPM),
     
     // @Group: RSSI_
     // @Path: ../libraries/AP_RSSI/AP_RSSI.cpp
@@ -1082,11 +1082,11 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Group: BTN_
     // @Path: ../libraries/AP_Button/AP_Button.cpp
-    AP_SUBGROUPINFO(button, "BTN_", 1, ParametersG2, AP_Button),
+    //AP_SUBGROUPINFO(button, "BTN_", 1, ParametersG2, AP_Button),
 
     // @Group: ICE_
     // @Path: ../libraries/AP_ICEngine/AP_ICEngine.cpp
-    AP_SUBGROUPINFO(ice_control, "ICE_", 2, ParametersG2, AP_ICEngine),
+    //AP_SUBGROUPINFO(ice_control, "ICE_", 2, ParametersG2, AP_ICEngine),
 
     // 3 was used by prototype for servo_channels
     
@@ -1191,11 +1191,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_GROUPEND
 };
 
-ParametersG2::ParametersG2(void) :
-    ice_control(plane.rpm_sensor)
-#if SOARING_ENABLED == ENABLED
-    ,soaring_controller(plane.ahrs, plane.TECS_controller, plane.aparm)
-#endif
+ParametersG2::ParametersG2(void)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }

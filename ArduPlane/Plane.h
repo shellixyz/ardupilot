@@ -45,16 +45,13 @@
 #include <AP_Relay/AP_Relay.h>       // APM relay
 #include <AP_Camera/AP_Camera.h>          // Photo or video camera
 #include <AP_Airspeed/AP_Airspeed.h>
-#include <AP_RPM/AP_RPM.h>
 #include <AP_Stats/AP_Stats.h>     // statistics library
 #include <AP_Beacon/AP_Beacon.h>
 
-#include <AP_AdvancedFailsafe/AP_AdvancedFailsafe.h>
 #include <APM_Control/APM_Control.h>
 #include <APM_Control/AP_AutoTune.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>    // MAVLink GCS definitions
 #include <AP_SerialManager/AP_SerialManager.h>   // Serial manager library
-#include <AP_Mount/AP_Mount.h>           // Camera/Antenna mount
 #include <AP_Declination/AP_Declination.h> // ArduPilot Mega Declination Helper Library
 #include <AP_Logger/AP_Logger.h>
 #include <AP_Scheduler/AP_Scheduler.h>       // main loop scheduler
@@ -180,8 +177,6 @@ private:
     Compass compass;
 
     AP_InertialSensor ins;
-
-    AP_RPM rpm_sensor;
 
 // Inertial Navigation EKF
 #if AP_AHRS_NAVEKF_AVAILABLE
@@ -729,7 +724,6 @@ private:
     void send_wind(mavlink_channel_t chan);
     void send_pid_info(const mavlink_channel_t chan, const AP_Logger::PID_Info *pid_info, const uint8_t axis, const float achieved);
     void send_pid_tuning(mavlink_channel_t chan);
-    void send_rpm(mavlink_channel_t chan);
 
     void send_aoa_ssa(mavlink_channel_t chan);
 
@@ -844,7 +838,6 @@ private:
     bool trim_radio();
     bool rc_failsafe_active(void) const;
     void read_airspeed(void);
-    void rpm_update(void);
     void init_ardupilot();
     void startup_ground(void);
     enum FlightMode get_previous_mode();

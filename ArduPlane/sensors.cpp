@@ -1,6 +1,5 @@
 #include "Plane.h"
 #include <AP_RSSI/AP_RSSI.h>
-#include <AP_OpticalFlow/AP_OpticalFlow.h>
 
 /*
   calibrate compass
@@ -41,18 +40,5 @@ void Plane::read_airspeed(void)
     float aspeed;
     if (ahrs.airspeed_estimate(&aspeed)) {
         smoothed_airspeed = smoothed_airspeed * 0.8f + aspeed * 0.2f;
-    }
-}
-
-/*
-  update RPM sensors
- */
-void Plane::rpm_update(void)
-{
-    rpm_sensor.update();
-    if (rpm_sensor.enabled(0) || rpm_sensor.enabled(1)) {
-        if (should_log(MASK_LOG_RC)) {
-            logger.Write_RPM(rpm_sensor);
-        }
     }
 }
