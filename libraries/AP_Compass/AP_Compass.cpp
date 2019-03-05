@@ -6,24 +6,12 @@
 #include <AP_BoardConfig/AP_BoardConfig.h>
 
 #include "AP_Compass_SITL.h"
-#include "AP_Compass_AK8963.h"
 #include "AP_Compass_Backend.h"
-#include "AP_Compass_BMM150.h"
 #include "AP_Compass_HIL.h"
 #include "AP_Compass_HMC5843.h"
 #include "AP_Compass_IST8308.h"
 #include "AP_Compass_IST8310.h"
-#include "AP_Compass_LSM303D.h"
-#include "AP_Compass_LSM9DS1.h"
-#include "AP_Compass_LIS3MDL.h"
-#include "AP_Compass_AK09916.h"
 #include "AP_Compass_QMC5883L.h"
-#if HAL_WITH_UAVCAN
-#include "AP_Compass_UAVCAN.h"
-#endif
-#include "AP_Compass_MMC3416.h"
-#include "AP_Compass_MAG3110.h"
-#include "AP_Compass_RM3100.h"
 #include "AP_Compass.h"
 #include "Compass_learn.h"
 
