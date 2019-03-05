@@ -16,25 +16,25 @@
  */
 
 #include "AP_RCProtocol.h"
-#include "AP_RCProtocol_PPMSum.h"
-#include "AP_RCProtocol_DSM.h"
+//#include "AP_RCProtocol_PPMSum.h"
+//#include "AP_RCProtocol_DSM.h"
 #include "AP_RCProtocol_SBUS.h"
-#include "AP_RCProtocol_SUMD.h"
-#include "AP_RCProtocol_SRXL.h"
-#include "AP_RCProtocol_ST24.h"
+//#include "AP_RCProtocol_SUMD.h"
+//#include "AP_RCProtocol_SRXL.h"
+//#include "AP_RCProtocol_ST24.h"
 
 // singleton
 AP_RCProtocol *AP_RCProtocol::_singleton;
 
 void AP_RCProtocol::init()
 {
-    backend[AP_RCProtocol::PPM] = new AP_RCProtocol_PPMSum(*this);
+    //backend[AP_RCProtocol::PPM] = new AP_RCProtocol_PPMSum(*this);
     backend[AP_RCProtocol::SBUS] = new AP_RCProtocol_SBUS(*this, true);
-    backend[AP_RCProtocol::SBUS_NI] = new AP_RCProtocol_SBUS(*this, false);
-    backend[AP_RCProtocol::DSM] = new AP_RCProtocol_DSM(*this);
-    backend[AP_RCProtocol::SUMD] = new AP_RCProtocol_SUMD(*this);
-    backend[AP_RCProtocol::SRXL] = new AP_RCProtocol_SRXL(*this);
-    backend[AP_RCProtocol::ST24] = new AP_RCProtocol_ST24(*this);
+    //backend[AP_RCProtocol::SBUS_NI] = new AP_RCProtocol_SBUS(*this, false);
+    //backend[AP_RCProtocol::DSM] = new AP_RCProtocol_DSM(*this);
+    //backend[AP_RCProtocol::SUMD] = new AP_RCProtocol_SUMD(*this);
+    //backend[AP_RCProtocol::SRXL] = new AP_RCProtocol_SRXL(*this);
+    //backend[AP_RCProtocol::ST24] = new AP_RCProtocol_ST24(*this);
 }
 
 AP_RCProtocol::~AP_RCProtocol()
@@ -203,19 +203,8 @@ void AP_RCProtocol::start_bind(void)
 const char *AP_RCProtocol::protocol_name_from_protocol(rcprotocol_t protocol)
 {
     switch (protocol) {
-    case PPM:
-        return "PPM";
     case SBUS:
-    case SBUS_NI:
         return "SBUS";
-    case DSM:
-        return "DSM";
-    case SUMD:
-        return "SUMD";
-    case SRXL:
-        return "SRXL";
-    case ST24:
-        return "ST24";
     case NONE:
         break;
     }

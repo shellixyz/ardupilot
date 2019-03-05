@@ -31,13 +31,7 @@ public:
     ~AP_RCProtocol();
 
     enum rcprotocol_t {
-        PPM = 0,
         SBUS,
-        SBUS_NI,
-        DSM,
-        SUMD,
-        SRXL,
-        ST24,
         NONE    //last enum always is None
     };
     void init();
@@ -55,7 +49,7 @@ public:
 
     // for protocols without strong CRCs we require 3 good frames to lock on
     bool requires_3_frames(enum rcprotocol_t p) {
-        return (p == DSM || p == SBUS || p == SBUS_NI || p == PPM);
+        return (p == SBUS);
     }
     
     enum rcprotocol_t protocol_detected()
