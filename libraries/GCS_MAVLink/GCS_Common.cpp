@@ -2643,45 +2643,6 @@ void GCS_MAVLINK::handle_system_time_message(const mavlink_message_t *msg)
     AP::rtc().set_utc_usec(packet.time_unix_usec, AP_RTC::SOURCE_MAVLINK_SYSTEM_TIME);
 }
 
-MAV_RESULT GCS_MAVLINK::handle_command_camera(const mavlink_command_long_t &packet)
-{
-    AP_Camera *camera = AP::camera();
-    if (camera == nullptr) {
-        return MAV_RESULT_UNSUPPORTED;
-    }
-
-    MAV_RESULT result = MAV_RESULT_FAILED;
-    switch (packet.command) {
-    case MAV_CMD_DO_DIGICAM_CONFIGURE:
-        camera->configure(packet.param1,
-                          packet.param2,
-                          packet.param3,
-                          packet.param4,
-                          packet.param5,
-                          packet.param6,
-                          packet.param7);
-        result = MAV_RESULT_ACCEPTED;
-        break;
-    case MAV_CMD_DO_DIGICAM_CONTROL:
-        camera->control(packet.param1,
-                        packet.param2,
-                        packet.param3,
-                        packet.param4,
-                        packet.param5,
-                        packet.param6);
-        result = MAV_RESULT_ACCEPTED;
-        break;
-    case MAV_CMD_DO_SET_CAM_TRIGG_DIST:
-        camera->set_trigger_distance(packet.param1);
-        result = MAV_RESULT_ACCEPTED;
-        break;
-    default:
-        result = MAV_RESULT_UNSUPPORTED;
-        break;
-    }
-    return result;
-}
-
 
 // sets ekf_origin if it has not been set.
 //  should only be used when there is no GPS to provide an absolute position
@@ -2969,13 +2930,6 @@ void GCS_MAVLINK::handle_common_message(mavlink_message_t *msg)
 
 
     case MAVLINK_MSG_ID_DIGICAM_CONTROL:
-        {
-            AP_Camera *camera = AP::camera();
-            if (camera == nullptr) {
-                return;
-            }
-            camera->control_msg(msg);
-        }
         break;
 
     case MAVLINK_MSG_ID_SET_MODE:
@@ -3488,7 +3442,6 @@ MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t 
     case MAV_CMD_DO_DIGICAM_CONFIGURE:
     case MAV_CMD_DO_DIGICAM_CONTROL:
     case MAV_CMD_DO_SET_CAM_TRIGG_DIST:
-        result = handle_command_camera(packet);
         break;
 
     case MAV_CMD_DO_GRIPPER:
@@ -3589,15 +3542,6 @@ MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const Location &roi_loc)
         return MAV_RESULT_FAILED;
     }
 
-    if (roi_loc.lat == 0 && roi_loc.lng == 0 && roi_loc.alt == 0) {
-        // switch off the camera tracking if enabled
-        if (mount->get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
-            mount->set_mode_to_default();
-        }
-    } else {
-        // send the command to the camera mount
-        mount->set_roi_target(roi_loc);
-    }
     return MAV_RESULT_ACCEPTED;
 }
 
@@ -3949,14 +3893,6 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_CAMERA_FEEDBACK:
-        {
-            AP_Camera *camera = AP::camera();
-            if (camera == nullptr) {
-                break;
-            }
-            CHECK_PAYLOAD_SIZE(CAMERA_FEEDBACK);
-            camera->send_feedback(chan);
-        }
         break;
 
     case MSG_SYSTEM_TIME:

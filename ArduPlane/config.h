@@ -62,13 +62,15 @@
 // Optical flow sensor support
 //
 
-#ifndef OPTFLOW
-#if AP_AHRS_NAVEKF_AVAILABLE
- # define OPTFLOW ENABLED
-#else
- # define OPTFLOW DISABLED
-#endif
-#endif
+//#ifndef OPTFLOW
+//#if AP_AHRS_NAVEKF_AVAILABLE
+ //# define OPTFLOW ENABLED
+//#else
+ //# define OPTFLOW DISABLED
+//#endif
+//#endif
+
+# define OPTFLOW DISABLED
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -169,17 +171,21 @@
 // CAMERA TRIGGER AND CONTROL
 //
 // uses 1182 bytes of memory
-#ifndef CAMERA
- # define CAMERA         ENABLED
-#endif
+//#ifndef CAMERA
+ //# define CAMERA         ENABLED
+//#endif
+
+# define CAMERA         DISABLED
 
 //////////////////////////////////////////////////////////////////////////////
 // MOUNT (ANTENNA OR CAMERA)
 //
 // uses 7726 bytes of memory on 2560 chips (all options are enabled)
-#ifndef MOUNT
-#define MOUNT          ENABLED
-#endif
+//#ifndef MOUNT
+//#define MOUNT          ENABLED
+//#endif
+
+#define MOUNT          DISABLED
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -344,38 +350,43 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // Payload Gripper
-#ifndef GRIPPER_ENABLED
- #if HAL_MINIMIZE_FEATURES
-  # define GRIPPER_ENABLED DISABLED
- #else 
-  # define GRIPPER_ENABLED ENABLED
- #endif
-#endif
+//#ifndef GRIPPER_ENABLED
+ //#if HAL_MINIMIZE_FEATURES
+  //# define GRIPPER_ENABLED DISABLED
+ //#else 
+  //# define GRIPPER_ENABLED ENABLED
+ //#endif
+//#endif
+
+# define GRIPPER_ENABLED DISABLED
 
 #ifndef STATS_ENABLED
  # define STATS_ENABLED ENABLED
 #endif
 
-#ifndef DEVO_TELEM_ENABLED
-#if HAL_MINIMIZE_FEATURES
- #define DEVO_TELEM_ENABLED DISABLED
-#else
- #define DEVO_TELEM_ENABLED ENABLED
-#endif
-#endif
+//#ifndef DEVO_TELEM_ENABLED
+//#if HAL_MINIMIZE_FEATURES
+ //#define DEVO_TELEM_ENABLED DISABLED
+//#else
+ //#define DEVO_TELEM_ENABLED ENABLED
+//#endif
+//#endif
+#define DEVO_TELEM_ENABLED DISABLED
 
 #ifndef OSD_ENABLED
  #define OSD_ENABLED DISABLED
 #endif
 
-#ifndef SOARING_ENABLED
-#if HAL_MINIMIZE_FEATURES
- #define SOARING_ENABLED DISABLED
-#else
- #define SOARING_ENABLED ENABLED
-#endif
-#endif
+//#ifndef SOARING_ENABLED
+//#if HAL_MINIMIZE_FEATURES
+ //#define SOARING_ENABLED DISABLED
+//#else
+ //#define SOARING_ENABLED ENABLED
+//#endif
+//#endif
+#define SOARING_ENABLED DISABLED
 
-#ifndef LANDING_GEAR_ENABLED
- #define LANDING_GEAR_ENABLED !HAL_MINIMIZE_FEATURES
-#endif
+//#ifndef LANDING_GEAR_ENABLED
+ //#define LANDING_GEAR_ENABLED !HAL_MINIMIZE_FEATURES
+//#endif
+#define LANDING_GEAR_ENABLED DISABLED

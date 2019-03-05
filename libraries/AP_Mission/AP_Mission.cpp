@@ -290,7 +290,7 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
     case MAV_CMD_DO_DIGICAM_CONFIGURE:
     case MAV_CMD_DO_DIGICAM_CONTROL:
     case MAV_CMD_DO_SET_CAM_TRIGG_DIST:
-        return start_command_camera(cmd);
+        return true;
     case MAV_CMD_DO_PARACHUTE:
         return start_command_parachute(cmd);
     default:
@@ -884,7 +884,6 @@ MAV_MISSION_RESULT AP_Mission::mavlink_int_to_mission_cmd(const mavlink_mission_
         break;
 
     case MAV_CMD_DO_SET_CAM_TRIGG_DIST:                 // MAV ID: 206
-        cmd.content.cam_trigg_dist.meters = packet.param1;  // distance between camera shots in meters
         break;
 
     case MAV_CMD_DO_FENCE_ENABLE:                       // MAV ID: 207
@@ -1321,7 +1320,6 @@ bool AP_Mission::mission_cmd_to_mavlink_int(const AP_Mission::Mission_Command& c
         break;
 
     case MAV_CMD_DO_SET_CAM_TRIGG_DIST:                 // MAV ID: 206
-        packet.param1 = cmd.content.cam_trigg_dist.meters;  // distance between camera shots in meters
         break;
 
     case MAV_CMD_DO_FENCE_ENABLE:                       // MAV ID: 207

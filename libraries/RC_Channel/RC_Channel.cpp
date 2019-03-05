@@ -510,17 +510,6 @@ void RC_Channel::do_aux_function_avoid_proximity(const aux_switch_pos_t ch_flag)
     }
 }
 
-void RC_Channel::do_aux_function_camera_trigger(const aux_switch_pos_t ch_flag)
-{
-    AP_Camera *camera = AP::camera();
-    if (camera == nullptr) {
-        return;
-    }
-    if (ch_flag == HIGH) {
-        camera->take_picture();
-    }
-}
-
 void RC_Channel::do_aux_function_clear_wp(const aux_switch_pos_t ch_flag)
 {
     AP_Mission *mission = AP::mission();
@@ -611,7 +600,6 @@ void RC_Channel::do_aux_function(const aux_func_t ch_option, const aux_switch_po
 {
     switch(ch_option) {
     case CAMERA_TRIGGER:
-        do_aux_function_camera_trigger(ch_flag);
         break;
 
     case GRIPPER:
