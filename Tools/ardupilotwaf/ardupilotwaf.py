@@ -35,7 +35,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_Math',
     'AP_Mission',
     'AP_NavEKF2',
-    'AP_NavEKF3',
+    #'AP_NavEKF3',
     'AP_Notify',
     #'AP_OpticalFlow',
     'AP_Param',

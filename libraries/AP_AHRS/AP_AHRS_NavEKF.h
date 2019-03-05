@@ -31,7 +31,6 @@
 #endif
 
 #include <AP_NavEKF2/AP_NavEKF2.h>
-#include <AP_NavEKF3/AP_NavEKF3.h>
 #include <AP_NavEKF/AP_Nav_Common.h>              // definitions shared by inertial and ekf nav filters
 
 
@@ -45,7 +44,7 @@ public:
     };
 
     // Constructor
-    AP_AHRS_NavEKF(NavEKF2 &_EKF2, NavEKF3 &_EKF3, Flags flags = FLAG_NONE);
+    AP_AHRS_NavEKF(NavEKF2 &_EKF2, Flags flags = FLAG_NONE);
 
     /* Do not allow copies */
     AP_AHRS_NavEKF(const AP_AHRS_NavEKF &other) = delete;
@@ -94,13 +93,6 @@ public:
     }
     const NavEKF2 &get_NavEKF2_const(void) const {
         return EKF2;
-    }
-
-    NavEKF3 &get_NavEKF3(void) {
-        return EKF3;
-    }
-    const NavEKF3 &get_NavEKF3_const(void) const {
-        return EKF3;
     }
 
     // return secondary attitude solution if available, as eulers in radians
@@ -259,7 +251,6 @@ public:
 
 private:
     enum EKF_TYPE {EKF_TYPE_NONE=0,
-                   EKF_TYPE3=3,
                    EKF_TYPE2=2
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
                    ,EKF_TYPE_SITL=10
@@ -272,7 +263,6 @@ private:
     }
 
     NavEKF2 &EKF2;
-    NavEKF3 &EKF3;
     bool _ekf2_started;
     bool _ekf3_started;
     bool _force_ekf;

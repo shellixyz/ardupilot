@@ -69,7 +69,6 @@
 #include <AP_SpdHgtControl/AP_SpdHgtControl.h>
 #include <AP_TECS/AP_TECS.h>
 #include <AP_NavEKF2/AP_NavEKF2.h>
-#include <AP_NavEKF3/AP_NavEKF3.h>
 #include <AP_Mission/AP_Mission.h>     // Mission command library
 
 #include <AP_Soaring/AP_Soaring.h>
@@ -195,8 +194,7 @@ private:
 // Inertial Navigation EKF
 #if AP_AHRS_NAVEKF_AVAILABLE
     NavEKF2 EKF2{&ahrs, rangefinder};
-    NavEKF3 EKF3{&ahrs, rangefinder};
-    AP_AHRS_NavEKF ahrs{EKF2, EKF3};
+    AP_AHRS_NavEKF ahrs{EKF2};
 #else
     AP_AHRS_DCM ahrs;
 #endif
