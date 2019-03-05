@@ -292,7 +292,7 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
     case MAV_CMD_DO_SET_CAM_TRIGG_DIST:
         return true;
     case MAV_CMD_DO_PARACHUTE:
-        return start_command_parachute(cmd);
+        return true;
     default:
         return _cmd_start_fn(cmd);
     }

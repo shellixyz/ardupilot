@@ -1,7 +1,6 @@
 #include "AP_Mission.h"
 
 #include <GCS_MAVLink/GCS.h>
-#include <AP_Parachute/AP_Parachute.h>
 #include <AP_ServoRelayEvents/AP_ServoRelayEvents.h>
 
 bool AP_Mission::start_command_do_servorelayevents(const AP_Mission::Mission_Command& cmd)
@@ -38,29 +37,4 @@ bool AP_Mission::start_command_do_servorelayevents(const AP_Mission::Mission_Com
 #endif
         return false;
     }
-}
-
-bool AP_Mission::start_command_parachute(const AP_Mission::Mission_Command& cmd)
-{
-    AP_Parachute *parachute = AP::parachute();
-    if (parachute == nullptr) {
-        return false;
-    }
-
-    switch (cmd.p1) {
-    case PARACHUTE_DISABLE:
-        parachute->enabled(false);
-        break;
-    case PARACHUTE_ENABLE:
-        parachute->enabled(true);
-        break;
-    case PARACHUTE_RELEASE:
-        parachute->release();
-        break;
-    default:
-        // do nothing
-        return false;
-    }
-
-    return true;
 }
