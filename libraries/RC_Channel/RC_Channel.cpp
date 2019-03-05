@@ -29,10 +29,6 @@ extern const AP_HAL::HAL& hal;
 
 #include <GCS_MAVLink/GCS.h>
 
-#include <AC_Sprayer/AC_Sprayer.h>
-#include <AP_Gripper/AP_Gripper.h>
-#include <AP_LandingGear/AP_LandingGear.h>
-
 const AP_Param::GroupInfo RC_Channel::var_info[] = {
     // @Param: MIN
     // @DisplayName: RC min PWM
@@ -509,40 +505,6 @@ void RC_Channel::do_aux_function_relay(const uint8_t relay, bool val)
     servorelayevents->do_set_relay(relay, val);
 }
 
-void RC_Channel::do_aux_function_sprayer(const aux_switch_pos_t ch_flag)
-{
-    AC_Sprayer *sprayer = AP::sprayer();
-    if (sprayer == nullptr) {
-        return;
-    }
-
-    sprayer->run(ch_flag == HIGH);
-    // if we are disarmed the pilot must want to test the pump
-    sprayer->test_pump((ch_flag == HIGH) && !hal.util->get_soft_armed());
-}
-
-void RC_Channel::do_aux_function_gripper(const aux_switch_pos_t ch_flag)
-{
-    AP_Gripper *gripper = AP::gripper();
-    if (gripper == nullptr) {
-        return;
-    }
-
-    switch(ch_flag) {
-    case LOW:
-        gripper->release();
-//        copter.Log_Write_Event(DATA_GRIPPER_RELEASE);
-        break;
-    case MIDDLE:
-        // nothing
-        break;
-    case HIGH:
-        gripper->grab();
-//        copter.Log_Write_Event(DATA_GRIPPER_GRAB);
-        break;
-    }
-}
-
 void RC_Channel::do_aux_function_lost_vehicle_sound(const aux_switch_pos_t ch_flag)
 {
     switch (ch_flag) {
@@ -582,7 +544,6 @@ void RC_Channel::do_aux_function(const aux_func_t ch_option, const aux_switch_po
         break;
 
     case GRIPPER:
-        do_aux_function_gripper(ch_flag);
         break;
 
     case RC_OVERRIDE_ENABLE:
@@ -616,7 +577,6 @@ void RC_Channel::do_aux_function(const aux_func_t ch_option, const aux_switch_po
         break;
 
     case SPRAYER:
-        do_aux_function_sprayer(ch_flag);
         break;
 
     case LOST_VEHICLE_SOUND:
@@ -631,21 +591,6 @@ void RC_Channel::do_aux_function(const aux_func_t ch_option, const aux_switch_po
         break;
 
     case LANDING_GEAR: {
-        AP_LandingGear *lg = AP_LandingGear::get_singleton();
-        if (lg == nullptr) {
-            break;
-        }
-        switch (ch_flag) {
-        case LOW:
-            lg->set_position(AP_LandingGear::LandingGear_Deploy);
-            break;
-        case MIDDLE:
-            // nothing
-            break;
-        case HIGH:
-            lg->set_position(AP_LandingGear::LandingGear_Retract);
-            break;
-        }
         break;
     }
 

@@ -18,7 +18,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <AP_Airspeed/AP_Airspeed.h>
-#include <AP_Gripper/AP_Gripper.h>
 #include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_Common/Semaphore.h>
 #include <AP_Scheduler/AP_Scheduler.h>
@@ -3184,51 +3183,12 @@ MAV_RESULT GCS_MAVLINK::handle_command_get_home_position(const mavlink_command_l
     return MAV_RESULT_ACCEPTED;
 }
 
-MAV_RESULT GCS_MAVLINK::handle_command_do_gripper(const mavlink_command_long_t &packet)
-{
-    AP_Gripper *gripper = AP::gripper();
-    if (gripper == nullptr) {
-        return MAV_RESULT_FAILED;
-    }
-
-    // param1 : gripper number (ignored)
-    // param2 : action (0=release, 1=grab). See GRIPPER_ACTIONS enum.
-    if(!gripper->enabled()) {
-        return MAV_RESULT_FAILED;
-    }
-
-    MAV_RESULT result = MAV_RESULT_ACCEPTED;
-
-    switch ((uint8_t)packet.param2) {
-    case GRIPPER_ACTION_RELEASE:
-        gripper->release();
-        break;
-    case GRIPPER_ACTION_GRAB:
-        gripper->grab();
-        break;
-    default:
-        result = MAV_RESULT_FAILED;
-        break;
-    }
-
-    return result;
-}
-
 MAV_RESULT GCS_MAVLINK::handle_command_accelcal_vehicle_pos(const mavlink_command_long_t &packet)
 {
     if (!AP::ins().get_acal()->gcs_vehicle_position(packet.param1)) {
         return MAV_RESULT_FAILED;
     }
     return MAV_RESULT_ACCEPTED;
-}
-
-MAV_RESULT GCS_MAVLINK::handle_command_mount(const mavlink_command_long_t &packet)
-{
-    AP_Mount *mount = AP::mount();
-    if (mount == nullptr) {
-        return MAV_RESULT_UNSUPPORTED;
-    }
-    return mount->handle_command_long(packet);
 }
 
 MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t &packet)
@@ -3274,12 +3234,10 @@ MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t 
         break;
 
     case MAV_CMD_DO_GRIPPER:
-        result = handle_command_do_gripper(packet);
         break;
 
     case MAV_CMD_DO_MOUNT_CONFIGURE:
     case MAV_CMD_DO_MOUNT_CONTROL:
-        result = handle_command_mount(packet);
         break;
 
     case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES: {

@@ -280,7 +280,7 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
 {
     switch (cmd.id) {
     case MAV_CMD_DO_GRIPPER:
-        return start_command_do_gripper(cmd);
+        return true;
     case MAV_CMD_DO_SET_SERVO:
     case MAV_CMD_DO_SET_RELAY:
     case MAV_CMD_DO_REPEAT_SERVO:

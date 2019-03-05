@@ -20,7 +20,6 @@
 #include "AP_Landing.h"
 #include <GCS_MAVLink/GCS.h>
 #include <AP_HAL/AP_HAL.h>
-#include <AP_LandingGear/AP_LandingGear.h>
 
 void AP_Landing::type_slope_do_land(const AP_Mission::Mission_Command& cmd, const float relative_altitude)
 {
@@ -104,14 +103,6 @@ bool AP_Landing::type_slope_verify_land(const Location &prev_WP_loc, Location &n
             }
             
             type_slope_stage = SLOPE_STAGE_FINAL;
-            
-            // Check if the landing gear was deployed before landing
-            // If not - go around
-            AP_LandingGear *LG_inst = AP_LandingGear::get_singleton();
-            if (LG_inst != nullptr && !LG_inst->check_before_land()) {
-                type_slope_request_go_around();
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "Landing gear was not deployed");
-            }
         }
 
         if (AP::gps().ground_speed() < 3) {

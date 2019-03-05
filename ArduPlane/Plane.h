@@ -84,14 +84,11 @@
 
 #include <AP_Rally/AP_Rally.h>
 
-#include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 #include <AP_RSSI/AP_RSSI.h>                   // RSSI Library
 #include <AP_Parachute/AP_Parachute.h>
 #include <AP_Button/AP_Button.h>
 #include <AP_ICEngine/AP_ICEngine.h>
-#include <AP_Gripper/AP_Gripper.h>
 #include <AP_Landing/AP_Landing.h>
-#include <AP_LandingGear/AP_LandingGear.h>     // Landing Gear library
 
 #include "GCS_Mavlink.h"
 #include "GCS_Plane.h"
@@ -890,7 +887,6 @@ private:
     void set_servos_controlled(void);
     void set_servos_old_elevons(void);
     void set_servos_flaps(void);
-    void change_landing_gear(AP_LandingGear::LandingGearCommand cmd);
     void set_landing_gear(void);
     void dspoiler_update(void);
     void servo_output_mixers(void);
