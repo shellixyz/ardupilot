@@ -44,7 +44,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK(update_GPS_10Hz,        10,    400),
     SCHED_TASK(navigate,               10,    150),
     SCHED_TASK(update_compass,         10,    200),
-    SCHED_TASK(read_airspeed,          10,    100),
     SCHED_TASK(update_alt,             10,    200),
     SCHED_TASK(adjust_altitude_target, 10,    200),
     SCHED_TASK_CLASS(GCS,            (GCS*)&plane._gcs,       update_receive,   300,  500),
@@ -60,7 +59,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
 #endif
     SCHED_TASK(one_second_loop,         1,    400),
     SCHED_TASK(check_long_failsafe,     3,    400),
-    SCHED_TASK(airspeed_ratio_update,   1,    100),
 #if MOUNT == ENABLED
     SCHED_TASK_CLASS(AP_Mount, &plane.camera_mount, update, 50, 100),
 #endif // MOUNT == ENABLED
@@ -274,37 +272,6 @@ void Plane::compass_save()
         compass.save_offsets();
     }
 }
-
-/*
-  once a second update the airspeed calibration ratio
- */
-void Plane::airspeed_ratio_update(void)
-{
-    if (!airspeed.enabled() ||
-        gps.status() < AP_GPS::GPS_OK_FIX_3D ||
-        gps.ground_speed() < 4) {
-        // don't calibrate when not moving
-        return;        
-    }
-    if (airspeed.get_airspeed() < aparm.airspeed_min && 
-        gps.ground_speed() < (uint32_t)aparm.airspeed_min) {
-        // don't calibrate when flying below the minimum airspeed. We
-        // check both airspeed and ground speed to catch cases where
-        // the airspeed ratio is way too low, which could lead to it
-        // never coming up again
-        return;
-    }
-    if (labs(ahrs.roll_sensor) > roll_limit_cd ||
-        ahrs.pitch_sensor > aparm.pitch_limit_max_cd ||
-        ahrs.pitch_sensor < pitch_limit_min_cd) {
-        // don't calibrate when going beyond normal flight envelope
-        return;
-    }
-    const Vector3f &vg = gps.velocity();
-    airspeed.update_calibration(vg, aparm.airspeed_max);
-    gcs_send_airspeed_calibration(vg);
-}
-
 
 /*
   read the GPS and update position
@@ -791,8 +758,6 @@ void Plane::update_flight_stage(void)
         set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_NORMAL);
     }
 
-    // tell AHRS the airspeed to true airspeed ratio
-    airspeed.set_EAS2TAS(barometer.get_EAS2TAS());
 }
 
 

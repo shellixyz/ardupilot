@@ -108,9 +108,6 @@ void Plane::init_ardupilot()
     log_init();
 #endif
 
-    // initialise airspeed sensor
-    airspeed.init();
-
     if (g.compass_enabled==true) {
         bool compass_ok = compass.init() && compass.read();
 #if HIL_SUPPORT
@@ -132,9 +129,6 @@ void Plane::init_ardupilot()
         ahrs.set_optflow(&optflow);
     }
 #endif
-
-    // give AHRS the airspeed sensor
-    ahrs.set_airspeed(&airspeed);
 
     // GPS Initialization
     gps.set_log_gps_bit(MASK_LOG_GPS);
@@ -591,13 +585,7 @@ void Plane::startup_INS_ground(void)
     barometer.set_log_baro_bit(MASK_LOG_IMU);
     barometer.calibrate();
 
-    if (airspeed.enabled()) {
-        // initialize airspeed sensor
-        // --------------------------
-        airspeed.calibrate(true);
-    } else {
-        gcs().send_text(MAV_SEVERITY_WARNING,"No airspeed");
-    }
+    gcs().send_text(MAV_SEVERITY_WARNING,"No airspeed");
 }
 
 // updates the status of the notify objects

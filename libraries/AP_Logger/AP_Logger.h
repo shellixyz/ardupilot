@@ -13,14 +13,10 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <AP_Mission/AP_Mission.h>
-#include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
-#include <AP_RPM/AP_RPM.h>
 #include <AP_Logger/LogStructure.h>
 #include <AP_Motors/AP_Motors.h>
 #include <AP_Rally/AP_Rally.h>
-#include <AP_Beacon/AP_Beacon.h>
-#include <AP_Proximity/AP_Proximity.h>
 #include <AP_InertialSensor/AP_InertialSensor_Backend.h>
 
 #include <stdint.h>
@@ -182,14 +178,10 @@ public:
 #if AP_AHRS_NAVEKF_AVAILABLE
     void Write_EKF(AP_AHRS_NavEKF &ahrs);
 #endif
-    void Write_Radio(const mavlink_radio_t &packet);
     void Write_Message(const char *message);
     void Write_MessageF(const char *fmt, ...);
-    void Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const Location &current_loc, uint64_t timestamp_us=0);
-    void Write_Camera(const AP_AHRS &ahrs, const Location &current_loc, uint64_t timestamp_us=0);
     void Write_Trigger(const AP_AHRS &ahrs, const Location &current_loc);
     void Write_ESC(uint8_t id, uint64_t time_us, int32_t rpm, uint16_t voltage, uint16_t current, int16_t temperature, uint16_t current_tot);
-    void Write_Airspeed(AP_Airspeed &airspeed);
     void Write_Attitude(AP_AHRS &ahrs, const Vector3f &targets);
     void Write_AttitudeView(AP_AHRS_View &ahrs, const Vector3f &targets);
     void Write_Current();
@@ -200,7 +192,6 @@ public:
     void Write_Mission_Cmd(const AP_Mission &mission,
                                const AP_Mission::Mission_Command &cmd);
     void Write_Origin(uint8_t origin_type, const Location &loc);
-    void Write_RPM(const AP_RPM &rpm_sensor);
     void Write_Rate(const AP_AHRS_View *ahrs,
                         const AP_Motors &motors,
                         const AC_AttitudeControl &attitude_control,
@@ -208,10 +199,7 @@ public:
     void Write_RallyPoint(uint8_t total,
                           uint8_t sequence,
                           const RallyLocation &rally_point);
-    void Write_VisualOdom(float time_delta, const Vector3f &angle_delta, const Vector3f &position_delta, float confidence);
     void Write_AOA_SSA(AP_AHRS &ahrs);
-    void Write_Beacon(AP_Beacon &beacon);
-    void Write_Proximity(AP_Proximity &proximity);
     void Write_SRTL(bool active, uint16_t num_points, uint16_t max_points, uint8_t action, const Vector3f& point);
 
     void Write(const char *name, const char *labels, const char *fmt, ...);

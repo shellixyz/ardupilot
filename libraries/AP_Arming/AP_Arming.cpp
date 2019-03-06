@@ -176,26 +176,6 @@ bool AP_Arming::barometer_checks(bool report)
     return true;
 }
 
-bool AP_Arming::airspeed_checks(bool report)
-{
-    if ((checks_to_perform & ARMING_CHECK_ALL) ||
-        (checks_to_perform & ARMING_CHECK_AIRSPEED)) {
-        const AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-        if (airspeed == nullptr) {
-            // not an airspeed capable vehicle
-            return true;
-        }
-        for (uint8_t i=0; i<AIRSPEED_MAX_SENSORS; i++) {
-            if (airspeed->enabled(i) && airspeed->use(i) && !airspeed->healthy(i)) {
-                check_failed(ARMING_CHECK_AIRSPEED, report, "Airspeed %d not healthy", i + 1);
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 bool AP_Arming::logging_checks(bool report)
 {
     if ((checks_to_perform & ARMING_CHECK_ALL) ||

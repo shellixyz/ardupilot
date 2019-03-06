@@ -941,17 +941,7 @@ void AP_OSD_Screen::draw_btemp(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_atemp(uint8_t x, uint8_t y)
 {
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (!airspeed) {
-        return;
-    }
-    float temperature = 0;
-    airspeed->get_temperature(temperature);
-    if (airspeed->healthy()) {
-        backend->write(x, y, false, "%3d%c", (int)u_scale(TEMPERATURE, temperature), u_icon(TEMPERATURE));
-    } else {
-        backend->write(x, y, false, "--%c", u_icon(TEMPERATURE));
-    }
+    return;
 }
 
 void AP_OSD_Screen::draw_bat2_vlt(uint8_t x, uint8_t y)
@@ -976,16 +966,7 @@ void AP_OSD_Screen::draw_bat2used(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_aspd2(uint8_t x, uint8_t y)
 {
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (!airspeed) {
-        return;
-    }
-    float asp2 = airspeed->get_airspeed(1);
-    if (airspeed != nullptr && airspeed->healthy(1)) {
-        backend->write(x, y, false, "%c%4d%c", SYM_ASPD, (int)u_scale(SPEED, asp2), u_icon(SPEED));
-    } else {
-        backend->write(x, y, false, "%c ---%c", SYM_ASPD, u_icon(SPEED));
-    }
+    return;
 }
 
 #define DRAW_SETTING(n) if (n.enabled) draw_ ## n(n.xpos, n.ypos)

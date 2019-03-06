@@ -21,7 +21,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_AccelCal',
     'AP_ADC',
     'AP_AHRS',
-    'AP_Airspeed',
+    #'AP_Airspeed',
     'AP_Baro',
     'AP_BattMonitor',
     'AP_BoardConfig',

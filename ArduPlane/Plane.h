@@ -43,10 +43,7 @@
 #include <SRV_Channel/SRV_Channel.h>
 #include <Filter/Filter.h>                     // Filter library
 #include <AP_Relay/AP_Relay.h>       // APM relay
-#include <AP_Camera/AP_Camera.h>          // Photo or video camera
-#include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_Stats/AP_Stats.h>     // statistics library
-#include <AP_Beacon/AP_Beacon.h>
 
 #include <APM_Control/APM_Control.h>
 #include <APM_Control/AP_AutoTune.h>
@@ -370,9 +367,6 @@ private:
     // DEVO-M telemetry support
     AP_DEVO_Telem devo_telemetry;
 #endif
-
-    // Airspeed Sensors
-    AP_Airspeed airspeed;
 
     // ACRO controller state
     struct {

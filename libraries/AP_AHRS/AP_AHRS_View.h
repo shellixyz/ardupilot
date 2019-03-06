@@ -84,18 +84,6 @@ public:
         return ahrs.wind_estimate();
     }
 
-    bool airspeed_estimate(float *airspeed_ret) const {
-        return ahrs.airspeed_estimate(airspeed_ret);
-    }
-
-    bool airspeed_estimate_true(float *airspeed_ret) const {
-        return ahrs.airspeed_estimate_true(airspeed_ret);
-    }
-
-    float get_EAS2TAS(void) const {
-        return ahrs.get_EAS2TAS();
-    }
-
     Vector2f groundspeed_vector(void) {
         return ahrs.groundspeed_vector();
     }

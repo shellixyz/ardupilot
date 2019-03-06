@@ -101,7 +101,8 @@ int32_t AP_RollController::_get_rate_out(float desired_rate, float scaler, bool 
 	// Calculate equivalent gains so that values for K_P and K_I can be taken across from the old PID law
     // No conversion is required for K_D
 	float ki_rate = gains.I * gains.tau;
-    float eas2tas = _ahrs.get_EAS2TAS();
+    //float eas2tas = _ahrs.get_EAS2TAS();
+    float eas2tas = 15;
 	float kp_ff = MAX((gains.P - gains.I * gains.tau) * gains.tau  - gains.D , 0) / eas2tas;
     float k_ff = gains.FF / eas2tas;
 	float delta_time    = (float)dt * 0.001f;

@@ -23,7 +23,6 @@
 #include <AP_Math/AP_Math.h>
 #include <inttypes.h>
 #include <AP_Compass/AP_Compass.h>
-#include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_Beacon/AP_Beacon.h>
 #include <AP_GPS/AP_GPS.h>
 #include <AP_InertialSensor/AP_InertialSensor.h>
@@ -164,22 +163,6 @@ public:
     // this makes initial config easier
     void set_orientation();
 
-    void set_airspeed(AP_Airspeed *airspeed) {
-        _airspeed = airspeed;
-    }
-
-    void set_beacon(AP_Beacon *beacon) {
-        _beacon = beacon;
-    }
-
-    const AP_Airspeed *get_airspeed(void) const {
-        return _airspeed;
-    }
-
-    const AP_Beacon *get_beacon(void) const {
-        return _beacon;
-    }
-
     // get the index of the current primary accelerometer sensor
     virtual uint8_t get_primary_accel_index(void) const {
         return AP::ins().get_primary_accel();
@@ -283,28 +266,10 @@ public:
     // if we have an estimate
     virtual bool airspeed_estimate(float *airspeed_ret) const;
 
-    // return a true airspeed estimate (navigation airspeed) if
-    // available. return true if we have an estimate
-    bool airspeed_estimate_true(float *airspeed_ret) const {
-        if (!airspeed_estimate(airspeed_ret)) {
-            return false;
-        }
-        *airspeed_ret *= get_EAS2TAS();
-        return true;
-    }
-
-    // get apparent to true airspeed ratio
-    float get_EAS2TAS(void) const {
-        if (_airspeed) {
-            return _airspeed->get_EAS2TAS();
-        }
-        return 1.0f;
-    }
-
     // return true if airspeed comes from an airspeed sensor, as
     // opposed to an IMU estimate
     bool airspeed_sensor_enabled(void) const {
-        return _airspeed != nullptr && _airspeed->use() && _airspeed->healthy();
+        return false;
     }
 
     // return the parameter AHRS_WIND_MAX in metres per second
@@ -640,12 +605,6 @@ protected:
 
     // pointer to OpticalFlow object, if available
     const OpticalFlow *_optflow;
-
-    // pointer to airspeed object, if available
-    AP_Airspeed     * _airspeed;
-
-    // pointer to beacon object, if available
-    AP_Beacon     * _beacon;
 
     // time in microseconds of last compass update
     uint32_t _compass_last_update;

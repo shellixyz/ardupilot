@@ -113,17 +113,6 @@ bool Plane::suppress_throttle(void)
         return false;
     }
 
-    if (gps_movement) {
-        // if we have an airspeed sensor, then check it too, and
-        // require 5m/s. This prevents throttle up due to spiky GPS
-        // groundspeed with bad GPS reception
-        if ((!ahrs.airspeed_sensor_enabled()) || airspeed.get_airspeed() >= 5) {
-            // we're moving at more than 5 m/s
-            throttle_suppressed = false;
-            return false;        
-        }
-    }
-
     // throttle remains suppressed
     return true;
 }

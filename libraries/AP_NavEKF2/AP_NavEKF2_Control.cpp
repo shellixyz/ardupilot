@@ -73,7 +73,7 @@ void NavEKF2_core::setWindMagStateLearningMode()
 
             // set the wind sate variances to the measurement uncertainty
             for (uint8_t index=22; index<=23; index++) {
-                P[index][index] = sq(constrain_float(frontend->_easNoise, 0.5f, 5.0f) * constrain_float(_ahrs->get_EAS2TAS(), 0.9f, 10.0f));
+                P[index][index] = sq(constrain_float(frontend->_easNoise, 0.5f, 5.0f) * constrain_float(15, 0.9f, 10.0f));
             }
         } else {
             // set the variances using a typical wind speed

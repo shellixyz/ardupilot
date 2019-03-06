@@ -92,8 +92,6 @@ protected:
 
     virtual bool barometer_checks(bool report);
 
-    bool airspeed_checks(bool report);
-
     bool logging_checks(bool report);
 
     virtual bool ins_checks(bool report);

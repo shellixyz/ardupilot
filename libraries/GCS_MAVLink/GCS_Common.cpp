@@ -17,7 +17,6 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Vehicle/AP_Vehicle.h>
-#include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_Common/Semaphore.h>
 #include <AP_Scheduler/AP_Scheduler.h>
@@ -570,10 +569,6 @@ void GCS_MAVLINK::handle_radio_status(mavlink_message_t *msg, AP_Logger &datafla
     }
 #endif
 
-    //log rssi, noise, etc if logging Performance monitoring data
-    if (log_radio) {
-        dataflash.Write_Radio(packet);
-    }
 }
 
 /*
@@ -1583,58 +1578,6 @@ void GCS_MAVLINK::send_scaled_imu(uint8_t instance, void (*send_fn)(mavlink_chan
 }
 
 
-// send data for barometer and airspeed sensors instances.  In the
-// case that we run out of instances of one before the other we send
-// the relevant fields as 0.
-void GCS_MAVLINK::send_scaled_pressure_instance(uint8_t instance, void (*send_fn)(mavlink_channel_t chan, uint32_t time_boot_ms, float press_abs, float press_diff, int16_t temperature))
-{
-    const AP_Baro &barometer = AP::baro();
-
-    bool have_data = false;
-
-    float press_abs = 0.0f;
-    float temperature = 0.0f;
-    if (instance < barometer.num_instances()) {
-        press_abs = barometer.get_pressure(instance) * 0.01f;
-        temperature = barometer.get_temperature(instance)*100;
-        have_data = true;
-    }
-
-    float press_diff = 0; // pascal
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (airspeed != nullptr &&
-        instance < AIRSPEED_MAX_SENSORS) {
-        press_diff = airspeed->get_differential_pressure(instance) * 0.01f;
-        have_data = true;
-    }
-
-    if (!have_data) {
-        return;
-    }
-
-    send_fn(
-        chan,
-        AP_HAL::millis(),
-        press_abs, // hectopascal
-        press_diff, // hectopascal
-        temperature); // 0.01 degrees C
-}
-
-void GCS_MAVLINK::send_scaled_pressure()
-{
-    send_scaled_pressure_instance(0, mavlink_msg_scaled_pressure_send);
-}
-
-void GCS_MAVLINK::send_scaled_pressure2()
-{
-    send_scaled_pressure_instance(1, mavlink_msg_scaled_pressure2_send);
-}
-
-void GCS_MAVLINK::send_scaled_pressure3()
-{
-    send_scaled_pressure_instance(2, mavlink_msg_scaled_pressure3_send);
-}
-
 void GCS_MAVLINK::send_sensor_offsets()
 {
     const AP_InertialSensor &ins = AP::ins();
@@ -2215,13 +2158,6 @@ void GCS_MAVLINK::send_accelcal_vehicle_position(uint32_t position)
 
 float GCS_MAVLINK::vfr_hud_airspeed() const
 {
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (airspeed != nullptr && airspeed->healthy()) {
-        return airspeed->get_airspeed();
-    }
-    // because most vehicles don't have airspeed sensors, we return a
-    // different sort of speed estimate in the relevant field for
-    // comparison's sake.
     return AP::gps().ground_speed();
 }
 
@@ -2864,11 +2800,6 @@ MAV_RESULT GCS_MAVLINK::_handle_command_preflight_calibration_baro()
     AP::baro().update_calibration();
     gcs().send_text(MAV_SEVERITY_INFO, "Barometer calibration complete");
 
-    AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (airspeed != nullptr) {
-        airspeed->calibrate(false);
-    }
-
     return MAV_RESULT_ACCEPTED;
 }
 
@@ -3509,18 +3440,12 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_SCALED_PRESSURE:
-        CHECK_PAYLOAD_SIZE(SCALED_PRESSURE);
-        send_scaled_pressure();
         break;
 
     case MSG_SCALED_PRESSURE2:
-        CHECK_PAYLOAD_SIZE(SCALED_PRESSURE2);
-        send_scaled_pressure2();
         break;
 
     case MSG_SCALED_PRESSURE3:
-        CHECK_PAYLOAD_SIZE(SCALED_PRESSURE3);
-        send_scaled_pressure3();
         break;
 
     case MSG_SENSOR_OFFSETS:

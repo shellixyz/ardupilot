@@ -213,21 +213,6 @@ void Plane::send_servo_out(mavlink_channel_t chan)
 
 float GCS_MAVLINK_Plane::vfr_hud_airspeed() const
 {
-    // airspeed sensors are best.  While the AHRS airspeed_estimate
-    // will use an airspeed sensor, that value is constrained by the
-    // ground speed.  When reporting we should send the true airspeed
-    // value if possible:
-    if (plane.airspeed.enabled() && plane.airspeed.healthy()) {
-        return plane.airspeed.get_airspeed();
-    }
-
-    // airspeed estimates are OK:
-    float aspeed;
-    if (AP::ahrs().airspeed_estimate(&aspeed)) {
-        return aspeed;
-    }
-
-    // lying is worst:
     return 0;
 }
 

@@ -1,17 +1,6 @@
 #include "GCS_Plane.h"
 #include "Plane.h"
 
-void GCS_Plane::send_airspeed_calibration(const Vector3f &vg)
-{
-    for (uint8_t i=0; i<num_gcs(); i++) {
-        if (_chan[i].initialised) {
-            if (HAVE_PAYLOAD_SPACE((mavlink_channel_t)i, AIRSPEED_AUTOCAL)) {
-                plane.airspeed.log_mavlink_send((mavlink_channel_t)i, vg);
-            }
-        }
-    }
-}
-
 // update error mask of sensors and subsystems. The mask
 // uses the MAV_SYS_STATUS_* values from mavlink. If a bit is set
 // then it indicates that the sensor or subsystem is present but
@@ -26,10 +15,6 @@ void GCS_Plane::update_sensor_status_flags(void)
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_3D_MAG; // compass present
     }
 
-    const AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
-    if (airspeed && airspeed->enabled()) {
-        control_sensors_present |= MAV_SYS_STATUS_SENSOR_DIFFERENTIAL_PRESSURE;
-    }
     const AP_GPS &gps = AP::gps();
     if (gps.status() > AP_GPS::NO_GPS) {
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_GPS;
@@ -54,10 +39,6 @@ void GCS_Plane::update_sensor_status_flags(void)
 
     // all present sensors enabled by default except rate control, attitude stabilization, yaw, altitude, position control, geofence, motor, and battery output which we will set individually
     control_sensors_enabled = control_sensors_present & (~MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL & ~MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION & ~MAV_SYS_STATUS_SENSOR_YAW_POSITION & ~MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL & ~MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL & ~MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS & ~MAV_SYS_STATUS_GEOFENCE & ~MAV_SYS_STATUS_LOGGING & ~MAV_SYS_STATUS_SENSOR_BATTERY);
-
-    if (airspeed && airspeed->enabled() && airspeed->use()) {
-        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_DIFFERENTIAL_PRESSURE;
-    }
 
     if (plane.geofence_enabled()) {
         control_sensors_enabled |= MAV_SYS_STATUS_GEOFENCE;
@@ -169,9 +150,6 @@ void GCS_Plane::update_sensor_status_flags(void)
     }
     if (!ins.get_accel_health_all()) {
         control_sensors_health &= ~MAV_SYS_STATUS_SENSOR_3D_ACCEL;
-    }
-    if (airspeed && airspeed->all_healthy()) {
-        control_sensors_health |= MAV_SYS_STATUS_SENSOR_DIFFERENTIAL_PRESSURE;
     }
 #if GEOFENCE_ENABLED
     if (plane.geofence_breached()) {

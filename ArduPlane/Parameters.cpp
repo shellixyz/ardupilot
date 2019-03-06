@@ -978,7 +978,7 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Group: ARSPD
     // @Path: ../libraries/AP_Airspeed/AP_Airspeed.cpp
-    GOBJECT(airspeed,                               "ARSPD",   AP_Airspeed),
+    //GOBJECT(airspeed,                               "ARSPD",   AP_Airspeed),
 
     // @Group: NAVL1_
     // @Path: ../libraries/AP_L1_Control/AP_L1_Control.cpp

@@ -23,22 +23,3 @@ void Plane::accel_cal_update() {
         ahrs.set_trim(Vector3f(trim_roll, trim_pitch, 0));
     }
 }
-
-/*
-  ask airspeed sensor for a new value
- */
-void Plane::read_airspeed(void)
-{
-    airspeed.update(should_log(MASK_LOG_IMU));
-
-    // we calculate airspeed errors (and thus target_airspeed_cm) even
-    // when airspeed is disabled as TECS may be using synthetic
-    // airspeed for a quadplane transition
-    calc_airspeed_errors();
-    
-    // update smoothed airspeed estimate
-    float aspeed;
-    if (ahrs.airspeed_estimate(&aspeed)) {
-        smoothed_airspeed = smoothed_airspeed * 0.8f + aspeed * 0.2f;
-    }
-}

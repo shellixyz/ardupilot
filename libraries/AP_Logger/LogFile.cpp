@@ -819,40 +819,6 @@ void AP_Logger::Write_EKF2(AP_AHRS_NavEKF &ahrs)
         WriteBlock(&pktq2, sizeof(pktq2));
     }
 
-    // write range beacon fusion debug packet if the range value is non-zero
-    if (ahrs.get_beacon() != nullptr) {
-        uint8_t ID;
-        float rng;
-        float innovVar;
-        float innov;
-        float testRatio;
-        Vector3f beaconPosNED;
-        float bcnPosOffsetHigh;
-        float bcnPosOffsetLow;
-        if (ahrs.get_NavEKF2().getRangeBeaconDebug(-1, ID, rng, innov, innovVar, testRatio, beaconPosNED, bcnPosOffsetHigh, bcnPosOffsetLow)) {
-            if (rng > 0.0f) {
-                struct log_RngBcnDebug pkt10 = {
-                    LOG_PACKET_HEADER_INIT(LOG_NKF10_MSG),
-                    time_us : time_us,
-                    ID : (uint8_t)ID,
-                    rng : (int16_t)(100*rng),
-                    innov : (int16_t)(100*innov),
-                    sqrtInnovVar : (uint16_t)(100*safe_sqrt(innovVar)),
-                    testRatio : (uint16_t)(100*constrain_float(testRatio,0.0f,650.0f)),
-                    beaconPosN : (int16_t)(100*beaconPosNED.x),
-                    beaconPosE : (int16_t)(100*beaconPosNED.y),
-                    beaconPosD : (int16_t)(100*beaconPosNED.z),
-                    offsetHigh : (int16_t)(100*bcnPosOffsetHigh),
-                    offsetLow : (int16_t)(100*bcnPosOffsetLow),
-                    posN : 0,
-                    posE : 0,
-                    posD : 0
-                };
-                WriteBlock(&pkt10, sizeof(pkt10));
-            }
-        }
-    }
-
     // log EKF timing statistics every 5s
     static uint32_t lastTimingLogTime_ms = 0;
     if (AP_HAL::millis() - lastTimingLogTime_ms > 5000) {
@@ -866,69 +832,6 @@ void AP_Logger::Write_EKF2(AP_AHRS_NavEKF &ahrs)
 }
 
 #endif
-
-void AP_Logger::Write_Radio(const mavlink_radio_t &packet)
-{
-    struct log_Radio pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_RADIO_MSG),
-        time_us      : AP_HAL::micros64(),
-        rssi         : packet.rssi,
-        remrssi      : packet.remrssi,
-        txbuf        : packet.txbuf,
-        noise        : packet.noise,
-        remnoise     : packet.remnoise,
-        rxerrors     : packet.rxerrors,
-        fixed        : packet.fixed
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-// Write a Camera packet
-void AP_Logger::Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const Location &current_loc, uint64_t timestamp_us)
-{
-    int32_t altitude, altitude_rel, altitude_gps;
-    if (current_loc.relative_alt) {
-        altitude = current_loc.alt+ahrs.get_home().alt;
-        altitude_rel = current_loc.alt;
-    } else {
-        altitude = current_loc.alt;
-        altitude_rel = current_loc.alt - ahrs.get_home().alt;
-    }
-    const AP_GPS &gps = AP::gps();
-    if (gps.status() >= AP_GPS::GPS_OK_FIX_3D) {
-        altitude_gps = gps.location().alt;
-    } else {
-        altitude_gps = 0;
-    }
-
-    struct log_Camera pkt = {
-        LOG_PACKET_HEADER_INIT(static_cast<uint8_t>(msg)),
-        time_us     : timestamp_us?timestamp_us:AP_HAL::micros64(),
-        gps_time    : gps.time_week_ms(),
-        gps_week    : gps.time_week(),
-        latitude    : current_loc.lat,
-        longitude   : current_loc.lng,
-        altitude    : altitude,
-        altitude_rel: altitude_rel,
-        altitude_gps: altitude_gps,
-        roll        : (int16_t)ahrs.roll_sensor,
-        pitch       : (int16_t)ahrs.pitch_sensor,
-        yaw         : (uint16_t)ahrs.yaw_sensor
-    };
-    WriteCriticalBlock(&pkt, sizeof(pkt));
-}
-
-// Write a Camera packet
-void AP_Logger::Write_Camera(const AP_AHRS &ahrs, const Location &current_loc, uint64_t timestamp_us)
-{
-    Write_CameraInfo(LOG_CAMERA_MSG, ahrs, current_loc, timestamp_us);
-}
-
-// Write a Trigger packet
-void AP_Logger::Write_Trigger(const AP_AHRS &ahrs, const Location &current_loc)
-{
-    Write_CameraInfo(LOG_TRIGGER_MSG, ahrs, current_loc, 0);
-}
 
 // Write an attitude packet
 void AP_Logger::Write_Attitude(AP_AHRS &ahrs, const Vector3f &targets)
@@ -1112,35 +1015,6 @@ void AP_Logger::Write_ESC(uint8_t id, uint64_t time_us, int32_t rpm, uint16_t vo
     WriteBlock(&pkt, sizeof(pkt));
 }
 
-// Write a AIRSPEED packet
-void AP_Logger::Write_Airspeed(AP_Airspeed &airspeed)
-{
-    uint64_t now = AP_HAL::micros64();
-    for (uint8_t i=0; i<AIRSPEED_MAX_SENSORS; i++) {
-        if (!airspeed.enabled(i)) {
-            continue;
-        }
-        float temperature;
-        if (!airspeed.get_temperature(i, temperature)) {
-            temperature = 0;
-        }
-        struct log_AIRSPEED pkt = {
-            LOG_PACKET_HEADER_INIT(i==0?LOG_ARSP_MSG:LOG_ASP2_MSG),
-            time_us       : now,
-            airspeed      : airspeed.get_raw_airspeed(i),
-            diffpressure  : airspeed.get_differential_pressure(i),
-            temperature   : (int16_t)(temperature * 100.0f),
-            rawpressure   : airspeed.get_corrected_pressure(i),
-            offset        : airspeed.get_offset(i),
-            use           : airspeed.use(i),
-            healthy       : airspeed.healthy(i),
-            health_prob   : airspeed.get_health_failure_probability(i),
-            primary       : airspeed.get_primary()
-        };
-        WriteBlock(&pkt, sizeof(pkt));
-    }
-}
-
 // Write a Yaw PID packet
 void AP_Logger::Write_PID(uint8_t msg_type, const PID_Info &info)
 {
@@ -1167,17 +1041,6 @@ void AP_Logger::Write_Origin(uint8_t origin_type, const Location &loc)
         latitude    : loc.lat,
         longitude   : loc.lng,
         altitude    : loc.alt
-    };
-    WriteBlock(&pkt, sizeof(pkt));
-}
-
-void AP_Logger::Write_RPM(const AP_RPM &rpm_sensor)
-{
-    struct log_RPM pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_RPM_MSG),
-        time_us     : AP_HAL::micros64(),
-        rpm1        : rpm_sensor.get_rpm(0),
-        rpm2        : rpm_sensor.get_rpm(1)
     };
     WriteBlock(&pkt, sizeof(pkt));
 }
@@ -1209,24 +1072,6 @@ void AP_Logger::Write_Rate(const AP_AHRS_View *ahrs,
     WriteBlock(&pkt_rate, sizeof(pkt_rate));
 }
 
-// Write visual odometry sensor data
-void AP_Logger::Write_VisualOdom(float time_delta, const Vector3f &angle_delta, const Vector3f &position_delta, float confidence)
-{
-    struct log_VisualOdom pkt_visualodom = {
-        LOG_PACKET_HEADER_INIT(LOG_VISUALODOM_MSG),
-        time_us             : AP_HAL::micros64(),
-        time_delta          : time_delta,
-        angle_delta_x       : angle_delta.x,
-        angle_delta_y       : angle_delta.y,
-        angle_delta_z       : angle_delta.z,
-        position_delta_x    : position_delta.x,
-        position_delta_y    : position_delta.y,
-        position_delta_z    : position_delta.z,
-        confidence          : confidence
-    };
-    WriteBlock(&pkt_visualodom, sizeof(log_VisualOdom));
-}
-
 // Write AOA and SSA
 void AP_Logger::Write_AOA_SSA(AP_AHRS &ahrs)
 {
@@ -1238,71 +1083,6 @@ void AP_Logger::Write_AOA_SSA(AP_AHRS &ahrs)
     };
 
     WriteBlock(&aoa_ssa, sizeof(aoa_ssa));
-}
-
-// Write beacon sensor (position) data
-void AP_Logger::Write_Beacon(AP_Beacon &beacon)
-{
-    if (!beacon.enabled()) {
-        return;
-    }
-    // position
-    Vector3f pos;
-    float accuracy = 0.0f;
-    beacon.get_vehicle_position_ned(pos, accuracy);
-
-    struct log_Beacon pkt_beacon = {
-       LOG_PACKET_HEADER_INIT(LOG_BEACON_MSG),
-       time_us         : AP_HAL::micros64(),
-       health          : (uint8_t)beacon.healthy(),
-       count           : (uint8_t)beacon.count(),
-       dist0           : beacon.beacon_distance(0),
-       dist1           : beacon.beacon_distance(1),
-       dist2           : beacon.beacon_distance(2),
-       dist3           : beacon.beacon_distance(3),
-       posx            : pos.x,
-       posy            : pos.y,
-       posz            : pos.z
-    };
-    WriteBlock(&pkt_beacon, sizeof(pkt_beacon));
-}
-
-// Write proximity sensor distances
-void AP_Logger::Write_Proximity(AP_Proximity &proximity)
-{
-    // exit immediately if not enabled
-    if (proximity.get_status() == AP_Proximity::Proximity_NotConnected) {
-        return;
-    }
-
-    AP_Proximity::Proximity_Distance_Array dist_array {};
-    proximity.get_horizontal_distances(dist_array);
-
-    float dist_up;
-    if (!proximity.get_upward_distance(dist_up)) {
-        dist_up = 0.0f;
-    }
-
-    float close_ang = 0.0f, close_dist = 0.0f;
-    proximity.get_closest_object(close_ang, close_dist);
-
-    struct log_Proximity pkt_proximity = {
-            LOG_PACKET_HEADER_INIT(LOG_PROXIMITY_MSG),
-            time_us         : AP_HAL::micros64(),
-            health          : (uint8_t)proximity.get_status(),
-            dist0           : dist_array.distance[0],
-            dist45          : dist_array.distance[1],
-            dist90          : dist_array.distance[2],
-            dist135         : dist_array.distance[3],
-            dist180         : dist_array.distance[4],
-            dist225         : dist_array.distance[5],
-            dist270         : dist_array.distance[6],
-            dist315         : dist_array.distance[7],
-            distup          : dist_up,
-            closest_angle   : close_ang,
-            closest_dist    : close_dist
-    };
-    WriteBlock(&pkt_proximity, sizeof(pkt_proximity));
 }
 
 void AP_Logger::Write_SRTL(bool active, uint16_t num_points, uint16_t max_points, uint8_t action, const Vector3f& breadcrumb)

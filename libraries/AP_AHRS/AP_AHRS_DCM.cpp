@@ -645,11 +645,7 @@ AP_AHRS_DCM::drift_correction(float deltat)
             return;
         }
         float airspeed;
-        if (airspeed_sensor_enabled()) {
-            airspeed = _airspeed->get_airspeed();
-        } else {
-            airspeed = _last_airspeed;
-        }
+        airspeed = _last_airspeed;
         // use airspeed to estimate our ground velocity in
         // earth frame by subtracting the wind
         velocity = _dcm_matrix.colx() * airspeed;
@@ -953,11 +949,6 @@ void AP_AHRS_DCM::estimate_wind(void)
         }
 
         _last_wind_time = now;
-    } else if (now - _last_wind_time > 2000 && airspeed_sensor_enabled()) {
-        // when flying straight use airspeed to get wind estimate if available
-        const Vector3f airspeed = _dcm_matrix.colx() * _airspeed->get_airspeed();
-        const Vector3f wind = velocity - (airspeed * get_EAS2TAS());
-        _wind = _wind * 0.92f + wind * 0.08f;
     }
 }
 
@@ -998,11 +989,6 @@ bool AP_AHRS_DCM::get_position(struct Location &loc) const
 bool AP_AHRS_DCM::airspeed_estimate(float *airspeed_ret) const
 {
     bool ret = false;
-    if (airspeed_sensor_enabled()) {
-        *airspeed_ret = _airspeed->get_airspeed();
-        return true;
-    }
-
     if (!_flags.wind_estimation) {
         return false;
     }
@@ -1017,11 +1003,11 @@ bool AP_AHRS_DCM::airspeed_estimate(float *airspeed_ret) const
         // constrain the airspeed by the ground speed
         // and AHRS_WIND_MAX
         const float gnd_speed = AP::gps().ground_speed();
-        float true_airspeed = *airspeed_ret * get_EAS2TAS();
+        float true_airspeed = *airspeed_ret * 15;
         true_airspeed = constrain_float(true_airspeed,
                                         gnd_speed - _wind_max,
                                         gnd_speed + _wind_max);
-        *airspeed_ret = true_airspeed / get_EAS2TAS();
+        *airspeed_ret = true_airspeed / 15;
     }
     if (!ret) {
         // give the last estimate, but return false. This is used by
