@@ -17,7 +17,6 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_RCMapper/AP_RCMapper.h>
 #include <AP_Common/Bitmask.h>
-#include <AP_SBusOut/AP_SBusOut.h>
 #include <AP_BLHeli/AP_BLHeli.h>
 
 #define NUM_SERVO_CHANNELS 16
@@ -470,10 +469,6 @@ private:
     // this static arrangement is to avoid having static objects in AP_Param tables
     static SRV_Channel *channels;
     static SRV_Channels *_singleton;
-
-    // support for SBUS protocol
-    AP_SBusOut sbus;
-    static AP_SBusOut *sbus_ptr;
 
 #if HAL_SUPPORT_RCOUT_SERIAL
     // support for BLHeli protocol

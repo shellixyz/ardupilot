@@ -63,7 +63,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_Relay',
     'AP_ServoRelayEvents',
     #'AP_Volz_Protocol',
-    'AP_SBusOut',
+    #'AP_SBusOut',
     #'AP_IOMCU',
     #'AP_Parachute',
     #'AP_RAMTRON',
