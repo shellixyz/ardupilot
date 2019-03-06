@@ -75,7 +75,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
 #if SOARING_ENABLED == ENABLED
     SCHED_TASK(update_soaring,         50,    400),
 #endif
-    SCHED_TASK(parachute_check,        10,    200),
     SCHED_TASK(update_is_flying_5Hz,    5,    100),
 #if LOGGING_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Logger, &plane.logger, periodic_tasks, 50, 400),
