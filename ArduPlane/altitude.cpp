@@ -602,8 +602,7 @@ void Plane::rangefinder_height_update(void)
             if (!rangefinder_state.in_use &&
                 (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND ||
                  control_mode == QLAND ||
-                 control_mode == QRTL ||
-                 (control_mode == AUTO && quadplane.is_vtol_land(plane.mission.get_current_nav_cmd().id))) &&
+                 control_mode == QRTL) &&
                 g.rangefinder_landing) {
                 rangefinder_state.in_use = true;
                 gcs().send_text(MAV_SEVERITY_INFO, "Rangefinder engaged at %.2fm", (double)rangefinder_state.height_estimate);

@@ -42,11 +42,7 @@ MAV_COLLISION_ACTION AP_Avoidance_Plane::handle_avoidance(const AP_Avoidance::Ob
 
         case MAV_COLLISION_ACTION_HOVER:
             if (failsafe_state_change) {
-                if (plane.quadplane.is_flying()) {
-                    plane.set_mode(QLOITER, MODE_REASON_AVOIDANCE);
-                } else {
                     plane.set_mode(LOITER, MODE_REASON_AVOIDANCE);
-                }
             }
             break;
 

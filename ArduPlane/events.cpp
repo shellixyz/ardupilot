@@ -144,10 +144,6 @@ void Plane::handle_battery_failsafe(const char *type_str, const int8_t action)
 {
     switch ((Failsafe_Action)action) {
         case Failsafe_Action_QLand:
-            if (quadplane.available()) {
-                plane.set_mode(QLAND, MODE_REASON_BATTERY_FAILSAFE);
-                break;
-            }
             FALLTHROUGH;
         case Failsafe_Action_Land:
             if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != QLAND) {

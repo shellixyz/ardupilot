@@ -933,7 +933,7 @@ const AP_Param::Info Plane::var_info[] = {
 
     // @Group: Q_
     // @Path: quadplane.cpp
-    GOBJECT(quadplane,           "Q_", QuadPlane),
+    //GOBJECT(quadplane,           "Q_", QuadPlane),
 
     // @Group: TUNE_
     // @Path: tuning.cpp,../libraries/AP_Tuning/AP_Tuning.cpp
@@ -941,9 +941,9 @@ const AP_Param::Info Plane::var_info[] = {
     
     // @Group: Q_A_
     // @Path: ../libraries/AC_AttitudeControl/AC_AttitudeControl.cpp,../libraries/AC_AttitudeControl/AC_AttitudeControl_Multi.cpp
-    { AP_PARAM_GROUP, "Q_A_", Parameters::k_param_q_attitude_control,
-      (const void *)&plane.quadplane.attitude_control,
-      {group_info : AC_AttitudeControl_Multi::var_info}, AP_PARAM_FLAG_POINTER },
+    //{ AP_PARAM_GROUP, "Q_A_", Parameters::k_param_q_attitude_control,
+      //(const void *)&plane.quadplane.attitude_control,
+      //{group_info : AC_AttitudeControl_Multi::var_info}, AP_PARAM_FLAG_POINTER },
     
     // @Group: RLL2SRV_
     // @Path: ../libraries/APM_Control/AP_RollController.cpp
@@ -1323,11 +1323,6 @@ void Plane::load_parameters(void)
     // possibly convert elevon and vtail mixers
     convert_mixers();
     
-    if (quadplane.enable) {
-        // quadplanes needs a higher loop rate
-        AP_Param::set_default_by_name("SCHED_LOOP_RATE", 300);
-    }
-
     AP_Param::set_frame_type_flags(AP_PARAM_FRAME_PLANE);
 
     hal.console->printf("load_all took %uus\n", (unsigned)(micros() - before));

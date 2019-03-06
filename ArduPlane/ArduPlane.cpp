@@ -39,7 +39,6 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
     SCHED_TASK(update_flight_mode,    400,    100),
     SCHED_TASK(stabilize,             400,    100),
     SCHED_TASK(set_servos,            400,    100),
-    SCHED_TASK(update_throttle_hover, 100,     90),
     SCHED_TASK(read_control_switch,     7,    100),
     SCHED_TASK(update_GPS_50Hz,        50,    300),
     SCHED_TASK(update_GPS_10Hz,        10,    400),
@@ -156,22 +155,11 @@ void Plane::ahrs_update()
     roll_limit_cd = aparm.roll_limit_cd;
     pitch_limit_min_cd = aparm.pitch_limit_min_cd;
 
-    if (!quadplane.tailsitter_active()) {
-        roll_limit_cd *= ahrs.cos_pitch();
-        pitch_limit_min_cd *= fabsf(ahrs.cos_roll());
-    }
-
     // updated the summed gyro used for ground steering and
     // auto-takeoff. Dot product of DCM.c with gyro vector gives earth
     // frame yaw rate
     steer_state.locked_course_err += ahrs.get_yaw_rate_earth() * G_Dt;
     steer_state.locked_course_err = wrap_PI(steer_state.locked_course_err);
-
-    // check if we have had a yaw reset from the EKF
-    quadplane.check_yaw_reset();
-
-    // update inertial_nav for quadplane
-    quadplane.inertial_nav.update(G_Dt);
 }
 
 /*
@@ -184,11 +172,6 @@ void Plane::update_speed_height(void)
 	    // throttle suppressed, as this needs to be running for
 	    // takeoff detection
         SpdHgt_Controller->update_50hz();
-    }
-
-    if (quadplane.in_vtol_mode() ||
-        quadplane.in_assisted_flight()) {
-        quadplane.update_throttle_thr_mix();
     }
 }
 
@@ -432,9 +415,7 @@ void Plane::handle_auto_mode(void)
 
     nav_cmd_id = mission.get_current_nav_cmd().id;
 
-    if (quadplane.in_vtol_auto()) {
-        quadplane.control_auto(next_WP_loc);
-    } else if (nav_cmd_id == MAV_CMD_NAV_TAKEOFF ||
+    if (nav_cmd_id == MAV_CMD_NAV_TAKEOFF ||
         (nav_cmd_id == MAV_CMD_NAV_LAND && flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND)) {
         takeoff_calc_roll();
         takeoff_calc_pitch();
@@ -482,10 +463,7 @@ void Plane::update_flight_mode(void)
     // ensure we are fly-forward when we are flying as a pure fixed
     // wing aircraft. This helps the EKF produce better state
     // estimates as it can make stronger assumptions
-    if (quadplane.in_vtol_mode() ||
-        quadplane.in_assisted_flight()) {
-        ahrs.set_fly_forward(false);
-    } else if (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
+    if (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND) {
         ahrs.set_fly_forward(landing.is_flying_forward());
     } else {
         ahrs.set_fly_forward(true);
@@ -499,10 +477,6 @@ void Plane::update_flight_mode(void)
 
     case AVOID_ADSB:
     case GUIDED:
-        if (auto_state.vtol_loiter && quadplane.available()) {
-            quadplane.guided_update();
-            break;
-        }
         FALLTHROUGH;
 
     case RTL:
@@ -650,33 +624,6 @@ void Plane::update_flight_mode(void)
     case QLAND:
     case QRTL:
     case QAUTOTUNE: {
-        // set nav_roll and nav_pitch using sticks
-        int16_t roll_limit = MIN(roll_limit_cd, quadplane.aparm.angle_max);
-        float pitch_input = channel_pitch->norm_input();
-
-        // Scale from normalized input [-1,1] to centidegrees
-        if (quadplane.tailsitter_active()) {
-            // separate limit for tailsitter roll, if set
-            if (quadplane.tailsitter.max_roll_angle > 0) {
-                roll_limit = quadplane.tailsitter.max_roll_angle * 100.0f;
-            }
-
-            // angle max for tailsitter pitch
-            nav_pitch_cd = pitch_input * quadplane.aparm.angle_max;
-        } else {
-            // pitch is further constrained by LIM_PITCH_MIN/MAX which may impose
-            // tighter (possibly asymmetrical) limits than Q_ANGLE_MAX
-            if (pitch_input > 0) {
-                nav_pitch_cd = pitch_input * MIN(aparm.pitch_limit_max_cd, quadplane.aparm.angle_max);
-            } else {
-                nav_pitch_cd = pitch_input * MIN(-pitch_limit_min_cd, quadplane.aparm.angle_max);
-            }
-            nav_pitch_cd = constrain_int32(nav_pitch_cd, pitch_limit_min_cd, aparm.pitch_limit_max_cd.get());
-        }
-
-        nav_roll_cd  = (channel_roll->get_control_in() / 4500.0) * roll_limit;
-        nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit, roll_limit);
-
         break;
     }
         
@@ -705,19 +652,7 @@ void Plane::update_navigation()
         break;
             
     case RTL:
-        if (quadplane.available() && quadplane.rtl_mode == 1 &&
-            (nav_controller->reached_loiter_target() ||
-             location_passed_point(current_loc, prev_WP_loc, next_WP_loc) ||
-             auto_state.wp_distance < MAX(qrtl_radius, quadplane.stopping_distance())) &&
-            AP_HAL::millis() - last_mode_change_ms > 1000) {
-            /*
-              for a quadplane in RTL mode we switch to QRTL when we
-              are within the maximum of the stopping distance and the
-              RTL_RADIUS
-             */
-            set_mode(QRTL, MODE_REASON_UNKNOWN);
-            break;
-        } else if (g.rtl_autoland == 1 &&
+        if (g.rtl_autoland == 1 &&
             !auto_state.checked_for_autoland &&
             reached_loiter_target() && 
             labs(altitude_error_cm) < 1000) {
@@ -856,9 +791,7 @@ void Plane::update_flight_stage(void)
     // Update the speed & height controller states
     if (auto_throttle_mode && !throttle_suppressed) {        
         if (control_mode==AUTO) {
-            if (quadplane.in_vtol_auto()) {
-                set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_VTOL);
-            } else if (auto_state.takeoff_complete == false) {
+            if (auto_state.takeoff_complete == false) {
                 set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_TAKEOFF);
             } else if (mission.get_current_nav_cmd().id == MAV_CMD_NAV_LAND) {
                 if (landing.is_commanded_go_around() || flight_stage == AP_Vehicle::FixedWing::FLIGHT_ABORT_LAND) {
@@ -871,8 +804,6 @@ void Plane::update_flight_stage(void)
                 } else {
                     set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_LAND);
                 }
-            } else if (quadplane.in_assisted_flight()) {
-                set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_VTOL);
             } else {
                 set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_NORMAL);
             }
@@ -882,9 +813,6 @@ void Plane::update_flight_stage(void)
             // AUTO to, say, FBWB during a landing, an aborted landing or takeoff.
             set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_NORMAL);
         }
-    } else if (quadplane.in_vtol_mode() ||
-               quadplane.in_assisted_flight()) {
-        set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_VTOL);
     } else {
         set_flight_stage(AP_Vehicle::FixedWing::FLIGHT_NORMAL);
     }

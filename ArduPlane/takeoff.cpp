@@ -75,17 +75,6 @@ bool Plane::auto_takeoff_check(void)
         goto no_launch;
     }
 
-    if (!quadplane.is_tailsitter() &&
-        !(g2.flight_options & FlightOptions::DISABLE_TOFF_ATTITUDE_CHK)) {
-        // Check aircraft attitude for bad launch
-        if (ahrs.pitch_sensor <= -3000 || ahrs.pitch_sensor >= 4500 ||
-            (!fly_inverted() && labs(ahrs.roll_sensor) > 3000)) {
-            gcs().send_text(MAV_SEVERITY_WARNING, "Bad launch AUTO");
-            takeoff_state.accel_event_counter = 0;
-            goto no_launch;
-        }
-    }
-
     // Check ground speed and time delay
     if (((gps.ground_speed() > g.takeoff_throttle_min_speed || is_zero(g.takeoff_throttle_min_speed))) &&
         ((now - takeoff_state.last_tkoff_arm_time) >= wait_time_ms)) {

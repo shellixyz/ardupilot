@@ -124,11 +124,6 @@ bool Plane::suppress_throttle(void)
         }
     }
 
-    if (quadplane.is_flying()) {
-        throttle_suppressed = false;
-        return false;
-    }
-
     // throttle remains suppressed
     return true;
 }
@@ -405,10 +400,6 @@ void Plane::set_servos_controlled(void)
                guided_throttle_passthru) {
         // manual pass through of throttle while in GUIDED
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, get_throttle_input(true));
-    } else if (quadplane.in_vtol_mode()) {
-        // ask quadplane code for forward throttle
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 
-            constrain_int16(quadplane.forward_throttle_pct(), min_throttle, max_throttle));
     }
 
 #if SOARING_ENABLED == ENABLED
@@ -526,9 +517,6 @@ void Plane::set_landing_gear(void)
             cmd = AP_LandingGear::LandingGear_Retract;
             break;
         case AP_Vehicle::FixedWing::FLIGHT_VTOL:
-            if (quadplane.is_vtol_land(mission.get_current_nav_cmd().id)) {
-                cmd = AP_LandingGear::LandingGear_Deploy;
-            }
             break;
         default:
             break;
@@ -626,9 +614,6 @@ void Plane::set_servos(void)
         return;
     }
 
-    // do any transition updates for quadplane
-    quadplane.update();    
-
     if (control_mode == AUTO && auto_state.idle_mode) {
         // special handling for balloon launch
         set_servos_idle();
@@ -675,9 +660,7 @@ void Plane::set_servos(void)
     set_landing_gear();
 #endif
     
-    if (auto_throttle_mode ||
-        quadplane.in_assisted_flight() ||
-        quadplane.in_vtol_mode()) {
+    if (auto_throttle_mode) {
         /* only do throttle slew limiting in modes where throttle
          *  control is automatic */
         throttle_slew_limit(SRV_Channel::k_throttle);
@@ -761,9 +744,6 @@ void Plane::servos_output(void)
     // support twin-engine aircraft
     servos_twin_engine_mix();
 
-    // cope with tailsitters
-    quadplane.tailsitter_output();
-    
     // the mixers need pwm to be calculated now
     SRV_Channels::calc_pwm();
     
@@ -786,11 +766,6 @@ void Plane::servos_output(void)
     }
 }
 
-void Plane::update_throttle_hover() {
-    // update hover throttle at 100Hz
-    quadplane.update_throttle_hover();
-}
-
 /*
   implement automatic persistent trim of control surfaces with
   AUTO_TRIM=2, only available when SERVO_RNG_ENABLE=1 as otherwise it
@@ -806,10 +781,6 @@ void Plane::servos_auto_trim(void)
         return;
     }
     if (!is_flying()) {
-        return;
-    }
-    if (quadplane.in_assisted_flight() || quadplane.in_vtol_mode()) {
-        // can't auto-trim with quadplane motors running
         return;
     }
     if (abs(nav_roll_cd) > 700 || abs(nav_pitch_cd) > 700) {

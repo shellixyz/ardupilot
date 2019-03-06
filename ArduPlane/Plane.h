@@ -99,7 +99,6 @@
 
 #include "GCS_Mavlink.h"
 #include "GCS_Plane.h"
-#include "quadplane.h"
 #include "tuning.h"
 
 // Configuration
@@ -149,8 +148,6 @@ public:
     friend class Parameters;
     friend class ParametersG2;
     friend class AP_Arming_Plane;
-    friend class QuadPlane;
-    friend class QAutoTune;
     friend class AP_Tuning_Plane;
     friend class AP_AdvancedFailsafe_Plane;
     friend class AP_Avoidance_Plane;
@@ -779,9 +776,6 @@ private:
     // time that rudder arming has been running
     uint32_t rudder_arm_timer;
 
-    // support for quadcopter-plane
-    QuadPlane quadplane{ahrs};
-
     // support for transmitter tuning
     AP_Tuning_Plane tuning;
 
@@ -997,7 +991,6 @@ private:
     void calc_nav_yaw_ground(void);
     void throttle_slew_limit(SRV_Channel::Aux_servo_function_t func);
     bool suppress_throttle(void);
-    void update_throttle_hover();
     void channel_function_mixer(SRV_Channel::Aux_servo_function_t func1_in, SRV_Channel::Aux_servo_function_t func2_in,
                                 SRV_Channel::Aux_servo_function_t func1_out, SRV_Channel::Aux_servo_function_t func2_out);
     void flaperon_update(int8_t flap_percent);

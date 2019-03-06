@@ -34,10 +34,7 @@ void Plane::update_is_flying_5Hz(void)
         airspeed_movement = aspeed >= airspeed_threshold;
     }
 
-    if (quadplane.is_flying()) {
-        is_flying_bool = true;
-
-    } else if(arming.is_armed()) {
+    if(arming.is_armed()) {
         // when armed assuming flying and we need overwhelming evidence that we ARE NOT flying
         // short drop-outs of GPS are common during flight due to banking which points the antenna in different directions
         bool gps_lost_recently = (gps.last_fix_time_ms() > 0) && // we have locked to GPS before
@@ -178,9 +175,6 @@ void Plane::update_is_flying_5Hz(void)
 bool Plane::is_flying(void)
 {
     if (hal.util->get_soft_armed()) {
-        if (quadplane.is_flying_vtol()) {
-            return true;
-        }
         // when armed, assume we're flying unless we probably aren't
         return (isFlyingProbability >= 0.1f);
     }
@@ -322,8 +316,7 @@ bool Plane::in_preLaunch_flight_stage(void) {
     return (control_mode == AUTO &&
             throttle_suppressed &&
             flight_stage == AP_Vehicle::FixedWing::FLIGHT_NORMAL &&
-            mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF &&
-            !quadplane.is_vtol_takeoff(mission.get_current_nav_cmd().id));
+            mission.get_current_nav_cmd().id == MAV_CMD_NAV_TAKEOFF);
 }
 
 

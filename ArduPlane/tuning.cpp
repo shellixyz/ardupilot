@@ -89,82 +89,32 @@ const AP_Tuning_Plane::tuning_name AP_Tuning_Plane::tuning_names[] = {
  */
 AP_Float *AP_Tuning_Plane::get_param_pointer(uint8_t parm)
 {
-    if (parm < TUNING_FIXED_WING_BASE && !plane.quadplane.available()) {
-        // quadplane tuning options not available
-        return nullptr;
-    }
-    
     switch(parm) {
 
     case TUNING_RATE_ROLL_PI:
-        // use P for initial value when tuning PI
-        return &plane.quadplane.attitude_control->get_rate_roll_pid().kP();
-
     case TUNING_RATE_ROLL_P:
-        return &plane.quadplane.attitude_control->get_rate_roll_pid().kP();
-
     case TUNING_RATE_ROLL_I:
-        return &plane.quadplane.attitude_control->get_rate_roll_pid().kI();
-
     case TUNING_RATE_ROLL_D:
-        return &plane.quadplane.attitude_control->get_rate_roll_pid().kD();
-
     case TUNING_RATE_PITCH_PI:
-        return &plane.quadplane.attitude_control->get_rate_pitch_pid().kP();
-
     case TUNING_RATE_PITCH_P:
-        return &plane.quadplane.attitude_control->get_rate_pitch_pid().kP();
-
     case TUNING_RATE_PITCH_I:
-        return &plane.quadplane.attitude_control->get_rate_pitch_pid().kI();
-
     case TUNING_RATE_PITCH_D:
-        return &plane.quadplane.attitude_control->get_rate_pitch_pid().kD();
-
     case TUNING_RATE_YAW_PI:
-        return &plane.quadplane.attitude_control->get_rate_yaw_pid().kP();
-
     case TUNING_RATE_YAW_P:
-        return &plane.quadplane.attitude_control->get_rate_yaw_pid().kP();
-
     case TUNING_RATE_YAW_I:
-        return &plane.quadplane.attitude_control->get_rate_yaw_pid().kI();
-
     case TUNING_RATE_YAW_D:
-        return &plane.quadplane.attitude_control->get_rate_yaw_pid().kD();
-
     case TUNING_ANG_ROLL_P:
-        return &plane.quadplane.attitude_control->get_angle_roll_p().kP();
-
     case TUNING_ANG_PITCH_P:
-        return &plane.quadplane.attitude_control->get_angle_pitch_p().kP();
-
     case TUNING_ANG_YAW_P:
-        return &plane.quadplane.attitude_control->get_angle_yaw_p().kP();
-
     case TUNING_PXY_P:
-        return &plane.quadplane.pos_control->get_pos_xy_p().kP();
-
     case TUNING_PZ_P:
-        return &plane.quadplane.pos_control->get_pos_z_p().kP();
-
     case TUNING_VXY_P:
-        return &plane.quadplane.pos_control->get_vel_xy_pid().kP();
-
     case TUNING_VXY_I:
-        return &plane.quadplane.pos_control->get_vel_xy_pid().kI();
-
     case TUNING_VZ_P:
-        return &plane.quadplane.pos_control->get_vel_z_p().kP();
-
     case TUNING_AZ_P:
-        return &plane.quadplane.pos_control->get_accel_z_pid().kP();
-
     case TUNING_AZ_I:
-        return &plane.quadplane.pos_control->get_accel_z_pid().kI();
-
     case TUNING_AZ_D:
-        return &plane.quadplane.pos_control->get_accel_z_pid().kD();
+        return nullptr;
 
     // fixed wing tuning parameters
     case TUNING_RLL_P:
@@ -288,61 +238,5 @@ void AP_Tuning_Plane::reload_value(uint8_t parm)
  */
 float AP_Tuning_Plane::controller_error(uint8_t parm)
 {
-    if (!plane.quadplane.available()) {
         return 0;
-    }
-
-    // in general a good tune will have rmsP significantly greater
-    // than rmsD. Otherwise it is too easy to push D too high while
-    // tuning a quadplane and end up with D dominating
-    const float max_P_D_ratio = 3.0f;
-
-    if (plane.quadplane.motors->get_throttle() < 0.1f) {
-        // don't report stale errors if not running VTOL motors
-        return 0;
-    }
-        
-    switch(parm) {
-    // special handling of dual-parameters
-    case TUNING_RATE_ROLL_PI:
-    case TUNING_RATE_ROLL_P:
-    case TUNING_RATE_ROLL_I:
-        return plane.quadplane.attitude_control->control_monitor_rms_output_roll();
-
-    case TUNING_RATE_ROLL_D: {
-        // special case for D term to keep it well below P
-        float rms_P = plane.quadplane.attitude_control->control_monitor_rms_output_roll_P();
-        float rms_D = plane.quadplane.attitude_control->control_monitor_rms_output_roll_D();
-        if (rms_P < rms_D * max_P_D_ratio) {
-            return max_P_D_ratio;
-        }
-        return rms_P+rms_D;
-    }
-        
-        
-    case TUNING_RATE_PITCH_PI:
-    case TUNING_RATE_PITCH_P:
-    case TUNING_RATE_PITCH_I:
-        return plane.quadplane.attitude_control->control_monitor_rms_output_pitch();
-
-    case TUNING_RATE_PITCH_D: {
-        // special case for D term to keep it well below P
-        float rms_P = plane.quadplane.attitude_control->control_monitor_rms_output_pitch_P();
-        float rms_D = plane.quadplane.attitude_control->control_monitor_rms_output_pitch_D();
-        if (rms_P < rms_D * max_P_D_ratio) {
-            return max_P_D_ratio;
-        }
-        return rms_P+rms_D;
-    }
-        
-    case TUNING_RATE_YAW_PI:
-    case TUNING_RATE_YAW_P:
-    case TUNING_RATE_YAW_I:
-    case TUNING_RATE_YAW_D:
-        return plane.quadplane.attitude_control->control_monitor_rms_output_yaw();
-
-    default:
-        // no special handler
-        return 0;
-    }
 }

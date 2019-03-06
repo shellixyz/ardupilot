@@ -4,7 +4,7 @@
 
 MAV_TYPE GCS_MAVLINK_Plane::frame_type() const
 {
-    return plane.quadplane.get_mav_type();
+    return MAV_TYPE_FIXED_WING;
 }
 
 MAV_MODE GCS_MAVLINK_Plane::base_mode() const
@@ -118,12 +118,6 @@ void GCS_MAVLINK_Plane::send_attitude() const
     float p = ahrs.pitch - radians(plane.g.pitch_trim_cd*0.01f);
     float y = ahrs.yaw;
     
-    if (plane.quadplane.tailsitter_active()) {
-        r = plane.quadplane.ahrs_view->roll;
-        p = plane.quadplane.ahrs_view->pitch;
-        y = plane.quadplane.ahrs_view->yaw;
-    }
-    
     const Vector3f &omega = ahrs.get_gyro();
     mavlink_msg_attitude_send(
         chan,
@@ -158,22 +152,6 @@ void GCS_MAVLINK_Plane::send_nav_controller_output() const
     if (plane.control_mode == MANUAL) {
         return;
     }
-    const QuadPlane &quadplane = plane.quadplane;
-    if (quadplane.in_vtol_mode()) {
-        const Vector3f &targets = quadplane.attitude_control->get_att_target_euler_cd();
-        bool wp_nav_valid = quadplane.using_wp_nav();
-
-        mavlink_msg_nav_controller_output_send(
-            chan,
-            targets.x * 1.0e-2f,
-            targets.y * 1.0e-2f,
-            targets.z * 1.0e-2f,
-            wp_nav_valid ? quadplane.wp_nav->get_wp_bearing_to_destination() : 0,
-            wp_nav_valid ? MIN(quadplane.wp_nav->get_wp_distance_to_destination(), UINT16_MAX) : 0,
-            (plane.control_mode != QSTABILIZE) ? quadplane.pos_control->get_alt_error() * 1.0e-2f : 0,
-            plane.airspeed_error * 100,
-            wp_nav_valid ? quadplane.wp_nav->crosstrack_error() : 0);
-    } else {
         const AP_Navigation *nav_controller = plane.nav_controller;
         mavlink_msg_nav_controller_output_send(
             chan,
@@ -185,7 +163,6 @@ void GCS_MAVLINK_Plane::send_nav_controller_output() const
             plane.altitude_error_cm * 0.01f,
             plane.airspeed_error * 100,
             nav_controller->crosstrack_error());
-    }
 }
 
 void GCS_MAVLINK_Plane::send_position_target_global_int()
@@ -347,41 +324,11 @@ void Plane::send_pid_info(const mavlink_channel_t chan, const AP_Logger::PID_Inf
 void Plane::send_pid_tuning(mavlink_channel_t chan)
 {
     const Vector3f &gyro = ahrs.get_gyro();
-    const AP_Logger::PID_Info *pid_info;
-    if (g.gcs_pid_mask & TUNING_BITS_ROLL) {
-        if (quadplane.in_vtol_mode()) {
-            pid_info = &quadplane.attitude_control->get_rate_roll_pid().get_pid_info();
-        } else {
-            pid_info = &rollController.get_pid_info();
-        }
-        send_pid_info(chan, pid_info, PID_TUNING_ROLL, degrees(gyro.x));
-    }
-    if (g.gcs_pid_mask & TUNING_BITS_PITCH) {
-        if (quadplane.in_vtol_mode()) {
-            pid_info = &quadplane.attitude_control->get_rate_pitch_pid().get_pid_info();
-        } else {
-            pid_info = &pitchController.get_pid_info();
-        }
-        send_pid_info(chan, pid_info, PID_TUNING_PITCH, degrees(gyro.y));
-    }
-    if (g.gcs_pid_mask & TUNING_BITS_YAW) {
-        if (quadplane.in_vtol_mode()) {
-            pid_info = &quadplane.attitude_control->get_rate_yaw_pid().get_pid_info();
-        } else {
-            pid_info = &yawController.get_pid_info();
-        }
-        send_pid_info(chan, pid_info, PID_TUNING_YAW, degrees(gyro.z));
-    }
     if (g.gcs_pid_mask & TUNING_BITS_STEER) {
         send_pid_info(chan, &steerController.get_pid_info(), PID_TUNING_STEER, degrees(gyro.z));
     }
     if ((g.gcs_pid_mask & TUNING_BITS_LAND) && (flight_stage == AP_Vehicle::FixedWing::FLIGHT_LAND)) {
         send_pid_info(chan, landing.get_pid_info(), PID_TUNING_LANDING, degrees(gyro.z));
-    }
-    if (g.gcs_pid_mask & TUNING_BITS_ACCZ && quadplane.in_vtol_mode()) {
-        const Vector3f &accel = ahrs.get_accel_ef();
-        pid_info = &quadplane.pos_control->get_accel_z_pid().get_pid_info();
-        send_pid_info(chan, pid_info, PID_TUNING_ACCZ, -accel.z);
     }
  }
 
@@ -852,12 +799,6 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
         return MAV_RESULT_ACCEPTED;
 
     case MAV_CMD_NAV_TAKEOFF: {
-        // user takeoff only works with quadplane code for now
-        // param7 : altitude [metres]
-        float takeoff_alt = packet.param7;
-        if (plane.quadplane.available() && plane.quadplane.do_user_takeoff(takeoff_alt)) {
-            return MAV_RESULT_ACCEPTED;
-        }
         return MAV_RESULT_FAILED;
     }
 
@@ -901,27 +842,6 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
                     return MAV_RESULT_ACCEPTED;
                 }
 
-                // only fly a fixed wing abort if we aren't doing quadplane stuff, or potentially
-                // shooting a quadplane approach
-                if ((!plane.quadplane.available()) ||
-                    ((!plane.quadplane.in_vtol_auto()) &&
-                     (!(plane.quadplane.options & QuadPlane::OPTION_MISSION_LAND_FW_APPROACH)))) {
-                    // Initiate an aborted landing. This will trigger a pitch-up and
-                    // climb-out to a safe altitude holding heading then one of the
-                    // following actions will occur, check for in this order:
-                    // - If MAV_CMD_CONTINUE_AND_CHANGE_ALT is next command in mission,
-                    //      increment mission index to execute it
-                    // - else if DO_LAND_START is available, jump to it
-                    // - else decrement the mission index to repeat the landing approach
-
-                    if (!is_zero(packet.param1)) {
-                        plane.auto_state.takeoff_altitude_rel_cm = packet.param1 * 100;
-                    }
-                    if (plane.landing.request_go_around()) {
-                        plane.auto_state.next_wp_crosstrack = false;
-                        return MAV_RESULT_ACCEPTED;
-                    }
-                }
             }
         }
         return MAV_RESULT_FAILED;
@@ -1017,22 +937,9 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
 #endif
 
     case MAV_CMD_DO_MOTOR_TEST:
-        // param1 : motor sequence number (a number from 1 to max number of motors on the vehicle)
-        // param2 : throttle type (0=throttle percentage, 1=PWM, 2=pilot throttle channel pass-through. See MOTOR_TEST_THROTTLE_TYPE enum)
-        // param3 : throttle (range depends upon param2)
-        // param4 : timeout (in seconds)
-        // param5 : motor count (number of motors to test in sequence)
-        return plane.quadplane.mavlink_motor_test_start(chan,
-                                                        (uint8_t)packet.param1,
-                                                        (uint8_t)packet.param2,
-                                                        (uint16_t)packet.param3,
-                                                        packet.param4,
-                                                        (uint8_t)packet.param5);
+        return MAV_RESULT_ACCEPTED;
 
     case MAV_CMD_DO_VTOL_TRANSITION:
-        if (!plane.quadplane.handle_do_vtol_transition((enum MAV_VTOL_STATE)packet.param1)) {
-            return MAV_RESULT_FAILED;
-        }
         return MAV_RESULT_ACCEPTED;
 
     case MAV_CMD_DO_ENGINE_CONTROL:

@@ -9,30 +9,6 @@ void Plane::Log_Write_Attitude(void)
     targets.x = nav_roll_cd;
     targets.y = nav_pitch_cd;
 
-    if (quadplane.in_vtol_mode() || quadplane.in_assisted_flight()) {
-        // when VTOL active log the copter target yaw
-        targets.z = wrap_360_cd(quadplane.attitude_control->get_att_target_euler_cd().z);
-    } else {
-        //Plane does not have the concept of navyaw. This is a placeholder.
-        targets.z = 0;
-    }
-    
-    if (quadplane.tailsitter_active() || quadplane.in_vtol_mode()) {
-        // we need the attitude targets from the AC_AttitudeControl controller, as they
-        // account for the acceleration limits
-        targets = quadplane.attitude_control->get_att_target_euler_cd();
-        logger.Write_AttitudeView(*quadplane.ahrs_view, targets);
-    } else {
-        logger.Write_Attitude(ahrs, targets);
-    }
-    if (quadplane.in_vtol_mode() || quadplane.in_assisted_flight()) {
-        // log quadplane PIDs separately from fixed wing PIDs
-        logger.Write_PID(LOG_PIQR_MSG, quadplane.attitude_control->get_rate_roll_pid().get_pid_info());
-        logger.Write_PID(LOG_PIQP_MSG, quadplane.attitude_control->get_rate_pitch_pid().get_pid_info());
-        logger.Write_PID(LOG_PIQY_MSG, quadplane.attitude_control->get_rate_yaw_pid().get_pid_info());
-        logger.Write_PID(LOG_PIQA_MSG, quadplane.pos_control->get_accel_z_pid().get_pid_info() );
-    }
-
     logger.Write_PID(LOG_PIDR_MSG, rollController.get_pid_info());
     logger.Write_PID(LOG_PIDP_MSG, pitchController.get_pid_info());
     logger.Write_PID(LOG_PIDY_MSG, yawController.get_pid_info());
@@ -279,8 +255,6 @@ const struct LogStructure Plane::log_structure[] = {
       "ATRP", "QBBcfff",  "TimeUS,Type,State,Servo,Demanded,Achieved,P", "s---dd-", "F---00-" },
     { LOG_STATUS_MSG, sizeof(log_Status),
       "STAT", "QBfBBBBBB",  "TimeUS,isFlying,isFlyProb,Armed,Safety,Crash,Still,Stage,Hit", "s--------", "F--------" },
-    { LOG_QTUN_MSG, sizeof(QuadPlane::log_QControl_Tuning),
-      "QTUN", "Qffffffeccf", "TimeUS,ThI,ABst,ThO,ThH,DAlt,Alt,BAlt,DCRt,CRt,TMix", "s----mmmnn-", "F----00000-" },
     { LOG_AOA_SSA_MSG, sizeof(log_AOA_SSA),
       "AOA", "Qff", "TimeUS,AOA,SSA", "sdd", "F00" },
     { LOG_PIQR_MSG, sizeof(log_PID), \

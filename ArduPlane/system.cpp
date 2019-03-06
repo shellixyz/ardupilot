@@ -170,8 +170,6 @@ void Plane::init_ardupilot()
      */
     hal.scheduler->register_timer_failsafe(failsafe_check_static, 1000);
 
-    quadplane.setup();
-
     AP_Param::reload_defaults_file(true);
     
     startup_ground();
@@ -262,13 +260,6 @@ enum FlightMode Plane::get_previous_mode() {
 
 void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
 {
-#if !QAUTOTUNE_ENABLED
-    if (mode == QAUTOTUNE) {
-        gcs().send_text(MAV_SEVERITY_INFO,"QAUTOTUNE disabled");
-        mode = QHOVER;
-    }
-#endif
-
     if(control_mode == mode) {
         // don't switch modes if we are already in the correct mode.
         return;
@@ -415,11 +406,7 @@ void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
         throttle_allows_nudging = true;
         auto_throttle_mode = true;
         auto_navigation_mode = true;
-        if (quadplane.available() && quadplane.enable == 2) {
-            auto_state.vtol_mode = true;
-        } else {
-            auto_state.vtol_mode = false;
-        }
+        auto_state.vtol_mode = false;
         next_WP_loc = prev_WP_loc = current_loc;
         // start or resume the mission, based on MIS_AUTORESET
         mission.start_or_resume();
@@ -473,14 +460,6 @@ void Plane::set_mode(enum FlightMode mode, mode_reason_t reason)
     case QLAND:
     case QRTL:
     case QAUTOTUNE:
-        throttle_allows_nudging = true;
-        auto_navigation_mode = false;
-        if (!quadplane.init_mode()) {
-            control_mode = previous_mode;
-        } else {
-            auto_throttle_mode = false;
-            auto_state.vtol_mode = true;
-        }
         break;
     }
 
@@ -510,19 +489,13 @@ void Plane::exit_mode(enum FlightMode mode)
         if (mission.state() == AP_Mission::MISSION_RUNNING) {
             mission.stop();
 
-            if (mission.get_current_nav_cmd().id == MAV_CMD_NAV_LAND &&
-                !quadplane.is_vtol_land(mission.get_current_nav_cmd().id))
+            if (mission.get_current_nav_cmd().id == MAV_CMD_NAV_LAND)
             {
                 landing.restart_landing_sequence();
             }
         }
         auto_state.started_flying_in_auto_ms = 0;
         break;
-#if QAUTOTUNE_ENABLED
-    case QAUTOTUNE:
-        quadplane.qautotune.stop();
-        break;
-#endif
     default:
         break;
     }
@@ -707,9 +680,6 @@ void Plane::notify_flight_mode(enum FlightMode mode)
     case QRTL:
         notify.set_flight_mode_str("QRTL");
         break;
-    case QAUTOTUNE:
-        notify.set_flight_mode_str("QAUTOTUNE");
-        break;
     default:
         notify.set_flight_mode_str("----");
         break;
@@ -733,9 +703,6 @@ bool Plane::should_log(uint32_t mask)
  */
 int8_t Plane::throttle_percentage(void)
 {
-    if (quadplane.in_vtol_mode()) {
-        return quadplane.throttle_percentage();
-    }
     float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
     if (!have_reverse_thrust()) {
         return constrain_int16(throttle, 0, 100);
@@ -750,7 +717,6 @@ void Plane::change_arm_state(void)
 {
     Log_Arm_Disarm();
     update_soft_armed();
-    quadplane.set_armed(hal.util->get_soft_armed());
 }
 
 /*
@@ -788,10 +754,5 @@ bool Plane::disarm_motors(void)
     // reload target airspeed which could have been modified by a mission
     plane.aparm.airspeed_cruise_cm.load();
     
-#if QAUTOTUNE_ENABLED
-    //save qautotune gains if enabled and success
-    quadplane.qautotune.save_tuning_gains();
-#endif
-
     return true;
 }

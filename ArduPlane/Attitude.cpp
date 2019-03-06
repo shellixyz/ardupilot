@@ -22,14 +22,6 @@ float Plane::get_speed_scaler(void)
         float scale_max = MAX(2.0, (1.5 * aparm.airspeed_max) / g.scaling_speed);
         speed_scaler = constrain_float(speed_scaler, scale_min, scale_max);
 
-        if (quadplane.in_vtol_mode() && hal.util->get_soft_armed()) {
-            // when in VTOL modes limit surface movement at low speed to prevent instability
-            float threshold = aparm.airspeed_min * 0.5;
-            if (aspeed < threshold) {
-                float new_scaler = linear_interpolate(0, g.scaling_speed / threshold, aspeed, 0, threshold);
-                speed_scaler = MIN(speed_scaler, new_scaler);
-            }
-        }
     } else if (hal.util->get_soft_armed()) {
         // scale assumed surface movement using throttle output
         float throttle_out = MAX(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle), 1);
@@ -378,27 +370,10 @@ void Plane::stabilize()
     }
     float speed_scaler = get_speed_scaler();
 
-    if (quadplane.in_tailsitter_vtol_transition()) {
-        /*
-          during transition to vtol in a tailsitter try to raise the
-          nose rapidly while keeping the wings level
-         */
-        nav_pitch_cd = constrain_float((quadplane.tailsitter.transition_angle+5)*100, 5500, 8500),
-        nav_roll_cd = 0;
-    }
-    
     if (control_mode == TRAINING) {
         stabilize_training(speed_scaler);
     } else if (control_mode == ACRO) {
         stabilize_acro(speed_scaler);
-    } else if ((control_mode == QSTABILIZE ||
-                control_mode == QHOVER ||
-                control_mode == QLOITER ||
-                control_mode == QLAND ||
-                control_mode == QRTL ||
-                control_mode == QAUTOTUNE) &&
-               !quadplane.in_tailsitter_vtol_transition()) {
-        quadplane.control_run();
     } else {
         if (g.stick_mixing == STICK_MIXING_FBW && control_mode != STABILIZE) {
             stabilize_stick_mixing_fbw();
@@ -616,14 +591,6 @@ void Plane::update_load_factor(void)
     }
     aerodynamic_load_factor = 1.0f / safe_sqrt(cosf(radians(demanded_roll)));
 
-    if (quadplane.in_transition() &&
-        (quadplane.options & QuadPlane::OPTION_LEVEL_TRANSITION)) {
-        // the user wants transitions to be kept level to within LEVEL_ROLL_LIMIT
-        roll_limit_cd = MIN(roll_limit_cd, g.level_roll_limit*100);
-        nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit_cd, roll_limit_cd);
-        return;
-    }
-    
     if (!aparm.stall_prevention) {
         // stall prevention is disabled
         return;
@@ -632,11 +599,6 @@ void Plane::update_load_factor(void)
         // no roll limits when inverted
         return;
     }
-    if (quadplane.tailsitter_active()) {
-        // no limits while hovering
-        return;
-    }
-       
 
     float max_load_factor = smoothed_airspeed / MAX(aparm.airspeed_min, 1);
     if (max_load_factor <= 1) {
