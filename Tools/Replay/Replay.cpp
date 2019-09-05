@@ -970,6 +970,8 @@ void AP_Camera::configure(float, float, float, float, float, float, float) {}
 bool AP_AdvancedFailsafe::gcs_terminate(bool should_terminate, const char *reason) { return false; }
 AP_AdvancedFailsafe *AP::advancedfailsafe() { return nullptr; }
 
+// avoid building/linking LTM:
+void AP_LTM_Telem::init() {};
 // avoid building/linking Devo:
 void AP_DEVO_Telem::init() {};
 
