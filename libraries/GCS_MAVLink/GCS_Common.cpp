@@ -1945,6 +1945,7 @@ void GCS::setup_uarts()
     }
 
 #if !HAL_MINIMIZE_FEATURES
+    ltm_telemetry.init();
     devo_telemetry.init();
 #endif
 }
