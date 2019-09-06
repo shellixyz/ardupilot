@@ -42,6 +42,11 @@
 #define AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX     128
 #define AP_SERIALMANAGER_MAVLINK_BUFSIZE_TX     256
 
+// LTM default baud rates and buffer sizes
+#define AP_SERIALMANAGER_LTM_BAUD               2400
+#define AP_SERIALMANAGER_LTM_BUFSIZE_RX         0
+#define AP_SERIALMANAGER_LTM_BUFSIZE_TX         32
+
 // FrSky default baud rates, use default buffer sizes
 #define AP_SERIALMANAGER_FRSKY_D_BAUD           9600
 #define AP_SERIALMANAGER_FRSKY_SPORT_BAUD       57600
@@ -113,6 +118,7 @@ public:
         SerialProtocol_WindVane = 21,
         SerialProtocol_SLCAN = 22,
         SerialProtocol_RCIN = 23,
+        SerialProtocol_LTM_Telem = 24,
     };
 
     // get singleton instance
