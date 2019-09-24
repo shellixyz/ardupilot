@@ -174,10 +174,10 @@ void AP_LTM_Telem::send_Sframe(void)
 void AP_LTM_Telem::send_Aframe(void)
 {
     const AP_AHRS &ahrs = AP::ahrs();
-    const int16_t pitch = (uint16_t) roundf((ahrs.pitch_sensor + 9000) * 0.05f) & LTM_PITCH_LIMIT; // attitude pitch
-    const int16_t roll = (uint16_t) roundf((ahrs.roll_sensor + 18000) * 0.05f) & LTM_ROLL_LIMIT;   // attitude roll
-    const int16_t heading = (uint16_t) roundf((ahrs.yaw_sensor / 100.0)) & LTM_YAW_LIMIT;          // heading
-    
+    const int16_t pitch = (int16_t) roundf(ahrs.pitch_sensor / 100.0); // attitude pitch in degrees
+    const int16_t roll = (int16_t) roundf(ahrs.roll_sensor / 100.0);   // attitude roll in degrees
+    const int16_t heading = (int16_t) roundf(ahrs.yaw_sensor / 100.0); // heading in degrees
+
     uint8_t lt_buff[LTM_AFRAME_SIZE];
     // A Frame: $T(2 bytes)A(1byte)PITCH(2 bytes)ROLL(2bytes)HEADING(2bytes)CRC(xor,1byte)
     // START

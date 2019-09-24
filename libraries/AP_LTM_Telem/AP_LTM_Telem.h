@@ -19,9 +19,6 @@
 static const uint8_t LTM_GFRAME_SIZE = 18;
 static const uint8_t LTM_AFRAME_SIZE = 10;
 static const uint8_t LTM_SFRAME_SIZE = 11;
-static const uint16_t LTM_ROLL_LIMIT = 0x7FF;
-static const uint16_t LTM_PITCH_LIMIT = 0x3FF;
-static const uint16_t LTM_YAW_LIMIT = 0x7FF;
 
 class AP_LTM_Telem {
 public:
