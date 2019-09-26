@@ -84,7 +84,7 @@ void AP_LTM_Telem::send_Gframe(void)
         lat = 0;
         lon = 0;
         gndspeed = 0;
-        alt = (int32_t) roundf(alt_ahrs);
+        alt = (int32_t) roundf(alt_ahrs * 100.0);
         sats_visible = (uint8_t) AP::gps().num_sats();
         fix_type = (uint8_t) AP::gps().status();
     }
