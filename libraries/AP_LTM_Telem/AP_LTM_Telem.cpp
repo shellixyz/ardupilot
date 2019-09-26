@@ -68,8 +68,8 @@ void AP_LTM_Telem::send_Gframe(void)
 
     int32_t lat;                        // latitude
     int32_t lon;                        // longtitude
-    uint8_t gndspeed;                   // gps ground speed
-    int32_t alt;                        // altitude
+    uint8_t gndspeed;                   // gps ground speed (m/s)
+    int32_t alt;                        // altitude (cm)
     uint8_t sats_visible;               // number of visible gps sats
     uint8_t fix_type;                   // gps fix type
     if (ahrs.get_position(loc)) {
@@ -77,7 +77,7 @@ void AP_LTM_Telem::send_Gframe(void)
         lat = loc.lat;
         lon = loc.lng;
         gndspeed = (uint8_t) roundf(gps.ground_speed());
-        alt = (int32_t) roundf(alt_ahrs);
+        alt = (int32_t) roundf(alt_ahrs * 100.0);
         sats_visible = (uint8_t) AP::gps().num_sats();
         fix_type = (uint8_t) AP::gps().status();
     } else {
