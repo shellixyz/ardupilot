@@ -120,13 +120,13 @@ void AP_LTM_Telem::send_Gframe(void)
 void AP_LTM_Telem::send_Sframe(void)
 {
     const AP_BattMonitor &battery = AP::battery();
-    const uint16_t volt = (uint16_t) roundf(battery.voltage());                         // battery voltage (mV)
+    const uint16_t volt = (uint16_t) roundf(battery.voltage() * 1000.0f);              // battery voltage (expects value in mV)
     float current;
     if (!battery.current_amps(current)) {
         current = 0;
     }
     // note: max. current value we can send is 65.536 A
-    const uint16_t amp = (uint16_t) roundf(current * 1000.0f);                          // current sensor (mA)
+    const uint16_t amp = (uint16_t) roundf(current * 100.0f);                          // current sensor (expects value in hundredth of A)
 
     // airspeed in m/s if available and enabled - even if not used - otherwise send 0
     const AP_AHRS &ahrs = AP::ahrs();
