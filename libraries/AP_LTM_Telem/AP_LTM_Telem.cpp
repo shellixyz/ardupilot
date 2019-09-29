@@ -143,8 +143,7 @@ void AP_LTM_Telem::send_Sframe(void)
     uint8_t rssi;                                                                       // radio RSSI (%)
     AP_RSSI *ap_rssi = AP_RSSI::get_singleton();
     if (ap_rssi) {
-        uint8_t rssiv = ap_rssi->read_receiver_rssi_uint8();
-        rssi = (rssiv * 99) / 255;
+        rssi = ap_rssi->read_receiver_rssi_uint8();
     } else {
         rssi = 0;
     }
