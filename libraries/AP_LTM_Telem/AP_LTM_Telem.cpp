@@ -35,7 +35,7 @@ void AP_LTM_Telem::init()
             AP_SerialManager::SerialProtocol_LTM_Telem, 0))) {
         _port->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
         // initialise UART
-        _port->begin(AP_SERIALMANAGER_LTM_BAUD, AP_SERIALMANAGER_LTM_BUFSIZE_RX,
+        _port->begin(0, AP_SERIALMANAGER_LTM_BUFSIZE_RX,
         AP_SERIALMANAGER_LTM_BUFSIZE_TX);
         hal.scheduler->register_io_process(
                 FUNCTOR_BIND_MEMBER(&AP_LTM_Telem::tick, void));

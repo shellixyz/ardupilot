@@ -416,12 +416,6 @@ void AP_SerialManager::init()
                     break;
 #endif
 
-                case SerialProtocol_LTM_Telem:
-                    // Note baudrate is hardcoded to 2400
-                    state[i].baud = AP_SERIALMANAGER_LTM_BAUD/1000;// update baud param in case user looks at it
-                    // begin is handled by AP_LTM_Telem library
-                    break;
-
                 default:
                     state[i].uart->begin(map_baudrate(state[i].baud));
             }
