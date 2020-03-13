@@ -158,6 +158,14 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_FS_SCR", 19, AP_OSD, failsafe_scr, 0),
 
+    // @Param: _EFF_UNIT
+    // @DisplayName: Base unit for efficiency values
+    // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
+    // @Values: 0: mAh
+    //          1: Wh
+    // @User: Standard
+    AP_GROUPINFO("_EFF_UNIT", 20, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
+
     AP_GROUPEND
 };
 
