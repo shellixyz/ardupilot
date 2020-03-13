@@ -1721,12 +1721,26 @@ void AP_OSD_Screen::draw_eff(uint8_t x, uint8_t y)
         v = ahrs.groundspeed_vector();
     }
     float speed = u_scale(SPEED,v.length());
-    float current_amps;
-    if ((speed > 2.0) && battery.current_amps(current_amps)) {
-        backend->write(x, y, false, "%c%3d%c", SYM_EFF,int(1000.0f*current_amps/speed),SYM_MAH);
+    int8_t eff_unit_base = osd->efficiency_unit_base;
+    if (speed < 2.0) goto invalid;
+    if (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+        float current_amps;
+        if (!battery.current_amps(current_amps) || is_negative(current_amps)) goto invalid;
+        const uint16_t efficiency = roundf(1000.0f * current_amps / speed);
+        if (efficiency > 999) goto invalid;
+        backend->write(x, y, false, "%c%3d%c", SYM_EFF, efficiency, SYM_MAH);
     } else {
-        backend->write(x, y, false, "%c---%c", SYM_EFF,SYM_MAH);
+        float power_w;
+        if (!battery.power_watts(power_w) || is_negative(power_w)) goto invalid;
+        const float efficiency = power_w / speed;
+        if (roundf(efficiency) > 999) goto invalid;
+        const char* const fmt = (efficiency < 9.995 ? "%c%1.2f%c" : (efficiency < 99.95 ? "%c%2.1f%c" : "%c%3.0f%c"));
+        backend->write(x, y, false, fmt, SYM_EFF, efficiency, SYM_WH);
     }
+    return;
+invalid:
+    const uint8_t unit_symbol = (eff_unit_base == AP_OSD::EFF_UNIT_BASE_MAH ? SYM_MAH : SYM_WH);
+    backend->write(x, y, false, "%c---%c", SYM_EFF, unit_symbol);
 }
 
 void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
@@ -1747,16 +1761,25 @@ void AP_OSD_Screen::draw_climbeff(uint8_t x, uint8_t y)
         WITH_SEMAPHORE(baro.get_semaphore());
         vspd = baro.get_climb_rate();
     } while (false);
-    if (vspd < 0.0) {
-        vspd = 0.0;
+    if (is_positive(vspd)) {
+        AP_BattMonitor &battery = AP::battery();
+        uint32_t efficiency;
+        if (osd->efficiency_unit_base == AP_OSD::EFF_UNIT_BASE_MAH) {
+            float amps;
+            if (!battery.current_amps(amps) || !is_positive(amps)) goto invalid;
+            efficiency = roundf(3600.0f * vspd / amps);
+        } else {
+            float power_w;
+            if (!battery.power_watts(power_w) || !is_positive(power_w)) goto invalid;
+            efficiency = roundf(3600.0f * vspd / power_w);
+        }
+        if (efficiency < 1000) {
+            backend->write(x, y, false,"%c%c%3u%c", SYM_PTCHUP, SYM_EFF, efficiency, unit_icon);
+            return;
+        }
     }
-    AP_BattMonitor &battery = AP::battery();
-    float amps;
-    if (battery.current_amps(amps) && is_positive(amps)) {
-        backend->write(x, y, false,"%c%c%3.1f%c",SYM_PTCHUP,SYM_EFF,(double)(3.6f * u_scale(VSPEED,vspd)/amps),unit_icon);
-    } else {
-        backend->write(x, y, false,"%c%c---%c",SYM_PTCHUP,SYM_EFF,unit_icon);
-    }
+invalid:
+    backend->write(x, y, false, "%c%c---%c", SYM_PTCHUP, SYM_EFF, unit_icon);
 }
 
 void AP_OSD_Screen::draw_btemp(uint8_t x, uint8_t y)
