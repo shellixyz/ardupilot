@@ -458,6 +458,7 @@ public:
     AP_Int8 disarm_scr;
     AP_Int8 failsafe_scr;
     AP_Int32 button_delay_ms;
+    AP_Int8 efficiency_unit_base;
 
     enum {
         OPTION_DECIMAL_PACK = 1U<<0,
@@ -471,6 +472,10 @@ public:
         UNITS_SI=2,
         UNITS_AVIATION=3,
         UNITS_LAST=4,
+    };
+    enum efficiency_unit_base {
+        EFF_UNIT_BASE_MAH=0,
+        EFF_UNIT_BASE_WH=1,
     };
 
     AP_Int8 units;
