@@ -34,12 +34,6 @@ public:
 
 private:
 
-    static bool inited;
-    // Initialized via init_constants()
-    static int32_t grid_size;
-    static int32_t initial_resolution;
-
-    static void init_constants(void);
     static float compute_precision_for_length(int length);
     static int32_t adjust_latitude(int32_t lat, size_t code_len);
     static int32_t normalize_longitude(int32_t lon);
