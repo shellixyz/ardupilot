@@ -189,6 +189,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_EFF_UNIT", 23, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
 
+    // @Param: _W_AVGVOLT
+    // @DisplayName: AVGVOLT warn level
+    // @Description: Set level at which AVGVOLT item will flash
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("_W_AVGVOLT", 24, AP_OSD, warn_avgvolt, 3.6f),
+
     AP_GROUPEND
 };
 
