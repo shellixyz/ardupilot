@@ -547,6 +547,7 @@ private:
     bool was_armed;
     bool was_failsafe;
     bool _disable;
+    uint8_t num_cells = 0;
 
     uint32_t last_update_ms;
     float last_distance_m;
