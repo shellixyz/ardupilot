@@ -339,7 +339,6 @@ void AP_OSD::stats()
     max_alt_m = fmaxf(max_alt_m, alt);
     // maximum current
     AP_BattMonitor &battery = AP::battery();
-    if (this->num_cells == 0) this->num_cells = (uint8_t)((battery.voltage()/4.3f) + 1);
     float amps;
     if (battery.current_amps(amps)) {
         max_current_a = fmaxf(max_current_a, amps);
@@ -362,6 +361,12 @@ void AP_OSD::update_current_screen()
         }
         was_armed = false;
     }
+
+    AP_BattMonitor &battery = AP::battery();
+    uint8_t cell_calculation = (uint8_t)((battery.voltage()/4.3f) + 1);
+    // This is because we can calculate the wrong number of cells if voltage is
+    // 0 at boot. We always use the maximum number of cells calculated.
+    if (cell_calculation > num_cells) num_cells = cell_calculation;
 
     // Switch on failsafe event
     if (AP_Notify::flags.failsafe_radio || AP_Notify::flags.failsafe_battery) {
