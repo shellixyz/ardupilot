@@ -176,6 +176,14 @@ const AP_Param::GroupInfo AP_BattMonitor_Params::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 21, AP_BattMonitor_Params, _options, 0),
 
+    // @Param: CELL_DET_V
+    // @DisplayName: Maximum cell voltage for cell count detection
+    // @Description: 
+    // @Units: V
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("CELL_DET_V", 22, AP_BattMonitor_Params, _cell_detect_volt, 4.3f),
+
     AP_GROUPEND
 
 };

@@ -330,6 +330,24 @@ float AP_BattMonitor::voltage(uint8_t instance) const
     }
 }
 
+/// voltage - returns average cell battery voltage in volts
+float AP_BattMonitor::cell_avg_voltage(uint8_t instance) const
+{
+    if ((instance < _num_instances) && (state[instance].cell_count)) {
+        auto istate = state[instance];
+        float cells_total = 0;
+        if (has_cell_voltages(instance)) {
+            for (uint16_t i = 0; i < istate.cell_count; ++i) {
+                cells_total += istate.cell_voltages.cells[i];
+            }
+        } else {
+            cells_total = istate.voltage;
+        }
+        return cells_total / istate.cell_count;
+    } else {
+        return 0.0f;
+    }
+}
 /// get voltage with sag removed (based on battery current draw and resistance)
 /// this will always be greater than or equal to the raw voltage
 float AP_BattMonitor::voltage_resting_estimate(uint8_t instance) const
