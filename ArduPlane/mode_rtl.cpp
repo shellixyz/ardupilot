@@ -19,7 +19,21 @@ void ModeRTL::update()
     plane.calc_nav_pitch();
     plane.calc_throttle();
 
-    if (plane.g2.rtl_climb_min > 0) {
+    if (plane.g2.flight_options & FlightOptions::CLIMB_BEFORE_TURN) {
+        // Climb to ALT_HOLD_RTL before turning. This overrides RTL_CLIMB_MIN.
+        if (!plane.rtl.done_climb && plane.current_loc.alt > plane.next_WP_loc.alt) {
+            plane.prev_WP_loc = plane.current_loc;
+            plane.setup_glide_slope();
+            plane.rtl.done_climb = true;
+        }
+        if (!plane.rtl.done_climb) {
+            // Constrain the roll limit as a failsafe, that way if something goes wrong the plane will
+            // eventually turn back and go to RTL instead of going perfectly straight. This also leaves
+            // some leeway for fighting wind.
+            plane.roll_limit_cd = MIN(plane.roll_limit_cd, plane.g.level_roll_limit*100);
+            plane.nav_roll_cd = constrain_int32(plane.nav_roll_cd, -plane.roll_limit_cd, plane.roll_limit_cd);
+        }
+    } else if (plane.g2.rtl_climb_min > 0) {
         /*
           when RTL first starts limit bank angle to LEVEL_ROLL_LIMIT
           until we have climbed by RTL_CLIMB_MIN meters
@@ -30,6 +44,7 @@ void ModeRTL::update()
             plane.rtl.done_climb = true;
         }
         if (!plane.rtl.done_climb) {
+            // Same reason as above.
             plane.roll_limit_cd = MIN(plane.roll_limit_cd, plane.g.level_roll_limit*100);
             plane.nav_roll_cd = constrain_int32(plane.nav_roll_cd, -plane.roll_limit_cd, plane.roll_limit_cd);
         }
