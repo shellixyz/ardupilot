@@ -31,6 +31,7 @@
 #include <GCS_MAVLink/GCS.h>
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_Logger/AP_Logger.h>
+#include <AP_Vehicle/AP_Vehicle.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -345,7 +346,8 @@ void AP_BLHeli::msp_process_command(void)
     }
 
     case MSP_REBOOT:
-        debug("MSP: ignoring reboot command");
+        debug("MSP_REBOOT");
+        AP::vehicle()->reboot(false);
         break;
 
     case MSP_UID:
