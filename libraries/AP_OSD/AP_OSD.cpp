@@ -180,7 +180,30 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     AP_GROUPINFO("_W_TERR", 23, AP_OSD, warn_terr, -1),
 #endif
 
+    // @Param: _W_AVGCELLV
+    // @DisplayName: AVGCELLV warn level
+    // @Description: Set level at which AVGCELLV item will flash
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("_W_AVGCELLV", 24, AP_OSD, warn_avgcellvolt, 3.6f),
+
+    // @Param: _W_RESTVOLT
+    // @DisplayName: RESTVOLT warn level
+    // @Description: Set level at which RESTVOLT item will flash
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("_W_RESTVOLT", 25, AP_OSD, warn_restvolt, 10.0f),
+
+    // @Param: _EFF_UNIT
+    // @DisplayName: Base unit for efficiency values
+    // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
+    // @Values: 0: mAh
+    //          1: Wh
+    // @User: Standard
+    AP_GROUPINFO("_EFF_UNIT", 26, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
+
 #endif //osd enabled
+
 #if OSD_PARAM_ENABLED
     // @Group: 5_
     // @Path: AP_OSD_ParamScreen.cpp
@@ -190,14 +213,6 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @Path: AP_OSD_ParamScreen.cpp
     AP_SUBGROUPINFO(param_screen[1], "6_", 22, AP_OSD, AP_OSD_ParamScreen),
 #endif
-
-    // @Param: _EFF_UNIT
-    // @DisplayName: Base unit for efficiency values
-    // @Description: Base unit to be used for displaying distance and vertical speed efficiency values
-    // @Values: 0: mAh
-    //          1: Wh
-    // @User: Standard
-    AP_GROUPINFO("_EFF_UNIT", 23, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
 
     AP_GROUPEND
 };
