@@ -888,13 +888,16 @@ MSPCommandResult AP_MSP_Telem_Backend::msp_process_out_esc_sensor_data(sbuf_t *d
     AP_BLHeli *blheli = AP_BLHeli::get_singleton();
     if (blheli && blheli->have_telem_data()) {
         const uint8_t num_motors = blheli->get_num_motors();
-        sbuf_write_u8(dst, num_motors);
+        int8_t max_temperature = INT8_MIN;
+        uint16_t max_rpm = 0;
         for (uint8_t i = 0; i < num_motors; i++) {
             AP_BLHeli::telem_data td {};
             blheli->get_telem_data(i, td);
-            sbuf_write_u8(dst, td.temperature);        // deg
-            sbuf_write_u16(dst, td.rpm / 100);
+            if (td.temperature > max_temperature) max_temperature = td.temperature;
+            if (td.rpm > max_rpm) max_rpm = td.rpm;
         }
+        sbuf_write_u8(dst, max_temperature);        // deg
+        sbuf_write_u16(dst, max_rpm / 100);
     }
 #endif
     return MSP_RESULT_ACK;
