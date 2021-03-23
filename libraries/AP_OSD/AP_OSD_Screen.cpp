@@ -1899,9 +1899,9 @@ void AP_OSD_Screen::draw_aspd1(uint8_t x, uint8_t y)
     }
     float asp1 = airspeed->get_airspeed();
     if (airspeed != nullptr && airspeed->healthy()) {
-        backend->write(x, y, false, "%c%4d%c", SYM_ASPD, (int)u_scale(SPEED, asp1), u_icon(SPEED));
+        backend->write(x, y, asp1 < osd->warn_aspd, "%c%4d%c", SYM_ASPD, (int)u_scale(SPEED, asp1), u_icon(SPEED));
     } else {
-        backend->write(x, y, false, "%c ---%c", SYM_ASPD, u_icon(SPEED));
+        backend->write(x, y, true, "%c ---%c", SYM_ASPD, u_icon(SPEED));
     }
 }
 
@@ -1913,9 +1913,9 @@ void AP_OSD_Screen::draw_aspd2(uint8_t x, uint8_t y)
     }
     float asp2 = airspeed->get_airspeed(1);
     if (airspeed != nullptr && airspeed->healthy(1)) {
-        backend->write(x, y, false, "%c%4d%c", SYM_ASPD, (int)u_scale(SPEED, asp2), u_icon(SPEED));
+        backend->write(x, y, asp2 < osd->warn_aspd, "%c%4d%c", SYM_ASPD, (int)u_scale(SPEED, asp2), u_icon(SPEED));
     } else {
-        backend->write(x, y, false, "%c ---%c", SYM_ASPD, u_icon(SPEED));
+        backend->write(x, y, true, "%c ---%c", SYM_ASPD, u_icon(SPEED));
     }
 }
 
