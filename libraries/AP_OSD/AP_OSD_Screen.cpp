@@ -1285,7 +1285,7 @@ void AP_OSD_Screen::draw_energy(uint8_t x, uint8_t y)
         energy_wh = 0;
     }
     const char* const fmt = (energy_wh < 9.9995 ? "%1.3f%c" : (energy_wh < 99.995 ? "%2.2f%c" : "%3.1f%c"));
-    backend->write(x, y, false, fmt, energy_wh, SYM_WH);
+    backend->write(x, y, energy_wh > osd->warn_energy, fmt, energy_wh, SYM_WH);
 }
 
 void AP_OSD_Screen::draw_fltmode(uint8_t x, uint8_t y)
