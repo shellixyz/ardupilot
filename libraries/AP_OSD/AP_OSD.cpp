@@ -209,6 +209,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_ASPD", 27, AP_OSD, warn_aspd, 0),
 
+    // @Param: _W_ENERGY
+    // @DisplayName: ASPD warn level
+    // @Description: Set level at which ENERGY item will flash
+    // @Range: 0 9999
+    // @User: Standard
+    AP_GROUPINFO("_W_ENERGY", 28, AP_OSD, warn_energy, 0),
+
 #endif //osd enabled
 
 #if OSD_PARAM_ENABLED
