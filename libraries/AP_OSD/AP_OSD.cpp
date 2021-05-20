@@ -202,6 +202,13 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_EFF_UNIT", 26, AP_OSD, efficiency_unit_base, AP_OSD::EFF_UNIT_BASE_MAH),
 
+    // @Param: _W_ASPD
+    // @DisplayName: ASPD warn level
+    // @Description: Set level at which ASPDx items will flash
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("_W_ASPD", 27, AP_OSD, warn_aspd, 0),
+
 #endif //osd enabled
 
 #if OSD_PARAM_ENABLED
