@@ -183,7 +183,7 @@ private:
     AP_OSD_Setting clk{false, 0, 0};
     AP_OSD_Setting callsign{false, 0, 0};
     AP_OSD_Setting vtx_power{false, 0, 0};
-    AP_OSD_Setting hgt_abvterr{true, 23, 7};
+    AP_OSD_Setting hgt_abvterr{false, 23, 7};
 #if HAL_PLUSCODE_ENABLE
     AP_OSD_Setting pluscode{false, 0, 0};
 #endif
