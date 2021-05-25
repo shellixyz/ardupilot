@@ -120,6 +120,7 @@ void RCOutput::update_channel_masks() {
         return;
     }
 
+/*
     for (uint8_t i=0; i<HAL_PWM_COUNT; i++) {
         switch (_dshot_esc_type) {
             case DSHOT_ESC_BLHELI:
@@ -134,6 +135,7 @@ void RCOutput::update_channel_masks() {
                 break;
         }
     }
+*/
 }
 
 #endif // DISABLE_DSHOT
