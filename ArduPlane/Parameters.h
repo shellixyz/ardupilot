@@ -442,7 +442,7 @@ public:
     AP_Int8 auto_trim;
     AP_Int8 rudder_only;
     AP_Float mixing_gain;
-    AP_Int16 mixing_offset;
+    AP_Int8 mixing_offset;
     AP_Int16 dspoiler_rud_rate;
     AP_Int16 num_resets;
     AP_Int32 log_bitmask;
