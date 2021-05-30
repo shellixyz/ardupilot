@@ -782,6 +782,14 @@ const AP_Param::Info Plane::var_info[] = {
     // @User: Advanced
     GSCALAR(crash_accel_threshold,          "CRASH_ACC_THRESH",   0),
 
+    // @Param: MIXING_DIFF
+    // @DisplayName: Mixing differential amount
+    // @Description: The amount of differential mixing. A positive number reduces the control surfaces down travel. A negative number reduces the control surfaces up travel
+    // @Units: %
+    // @Range: -100 100
+    // @User: Standard
+    GSCALAR(mixing_diff,          "MIXING_DIFF",  0),
+
     // @Param: CRASH_DETECT
     // @DisplayName: Crash Detection
     // @Description: Automatically detect a crash during AUTO flight and perform the bitmask selected action(s). Disarm will turn off motor for safety and to help against burning out ESC and motor. Set to 0 to disable crash detection.

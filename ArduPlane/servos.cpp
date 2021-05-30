@@ -160,6 +160,17 @@ void Plane::channel_function_mixer(SRV_Channel::Aux_servo_function_t func1_in, S
 
     float out1 = constrain_float(in2 - in1, -4500, 4500);
     float out2 = constrain_float(in2 + in1, -4500, 4500);
+
+    const float mixing_diff_attn = (100 - abs(g.mixing_diff)) * 0.01;
+
+    if ((out1 < 0 && g.mixing_diff > 0) || (out1 > 0 && g.mixing_diff < 0)) {
+        out1 *= mixing_diff_attn;
+    }
+
+    if ((out2 < 0 && g.mixing_diff > 0) || (out2 > 0 && g.mixing_diff < 0)) {
+        out2 *= mixing_diff_attn;
+    }
+
     SRV_Channels::set_output_scaled(func1_out, out1);
     SRV_Channels::set_output_scaled(func2_out, out2);
 }
