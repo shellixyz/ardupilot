@@ -155,15 +155,22 @@ void Plane::channel_function_mixer(SRV_Channel::Aux_servo_function_t func1_in, S
     float in1 = SRV_Channels::get_output_scaled(func1_in);
     float in2 = SRV_Channels::get_output_scaled(func2_in);
 
-    // apply MIXING_OFFSET to input channels
-    if (g.mixing_offset < 0) {
-        in2 *= (100 - g.mixing_offset) * 0.01;
-    } else if (g.mixing_offset > 0) {
-        in1 *= (100 + g.mixing_offset) * 0.01;
+    in1 *= g.mixing_gain + g.mixing_offset * 0.01f;
+    in2 *= g.mixing_gain - g.mixing_offset * 0.01f;
+
+    float out1 = constrain_float(in2 - in1, -4500, 4500);
+    float out2 = constrain_float(in2 + in1, -4500, 4500);
+
+    const float mixing_diff_attn = (100 - abs(g.mixing_diff)) * 0.01;
+
+    if ((out1 < 0 && g.mixing_diff > 0) || (out1 > 0 && g.mixing_diff < 0)) {
+        out1 *= mixing_diff_attn;
     }
-    
-    float out1 = constrain_float((in2 - in1) * g.mixing_gain, -4500, 4500);
-    float out2 = constrain_float((in2 + in1) * g.mixing_gain, -4500, 4500);
+
+    if ((out2 < 0 && g.mixing_diff > 0) || (out2 > 0 && g.mixing_diff < 0)) {
+        out2 *= mixing_diff_attn;
+    }
+
     SRV_Channels::set_output_scaled(func1_out, out1);
     SRV_Channels::set_output_scaled(func2_out, out2);
 }
