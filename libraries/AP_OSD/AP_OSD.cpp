@@ -201,6 +201,24 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_RESTVOLT", 26, AP_OSD, warn_restvolt, 10.0f),
 
+#if HAL_WITH_ESC_TELEM
+    // @Param: _W_BLHRPM
+    // @DisplayName: BLHRPM warn level
+    // @Description: Set level at which BLHRPM item will flash
+    // @Range: 0 500
+    // @Units: kRPM
+    // @User: Standard
+    AP_GROUPINFO("_W_BLHRPM", 27, AP_OSD, warn_blhrpm, 0.0f),
+
+    // @Param: _W_BLHTEMP
+    // @DisplayName: BLHTEMP warn level
+    // @Description: Set level at which BLHTEMP item will flash
+    // @Range: 0 200
+    // @Units: °C
+    // @User: Standard
+    AP_GROUPINFO("_W_BLHTEMP", 28, AP_OSD, warn_blhtemp, 80.0f),
+#endif
+
 #endif //osd enabled
 #if OSD_PARAM_ENABLED
     // @Group: 5_

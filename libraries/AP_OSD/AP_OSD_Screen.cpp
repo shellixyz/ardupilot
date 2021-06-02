@@ -1613,7 +1613,7 @@ void AP_OSD_Screen::draw_blh_temp(uint8_t x, uint8_t y)
     }
 
     uint8_t esc_temp = uint8_t(etemp / 100);
-    backend->write(x, y, false, "%3d%c", (int)u_scale(TEMPERATURE, esc_temp), u_icon(TEMPERATURE));
+    backend->write(x, y, (osd->warn_blhtemp > 0 && esc_temp > osd->warn_blhtemp), "%3d%c", (int)u_scale(TEMPERATURE, esc_temp), u_icon(TEMPERATURE));
 }
 
 void AP_OSD_Screen::draw_blh_rpm(uint8_t x, uint8_t y)
@@ -1625,7 +1625,7 @@ void AP_OSD_Screen::draw_blh_rpm(uint8_t x, uint8_t y)
     }
     float krpm = rpm * 0.001f;
     const char *format = krpm < 9.95 ? "%.2f%c%c" : (krpm < 99.95 ? "%.1f%c%c" : "%.0f%c%c");
-    backend->write(x, y, false, format, krpm, SYM_KILO, SYM_RPM);
+    backend->write(x, y, (osd->warn_blhrpm > 0 && krpm > osd->warn_blhrpm), format, krpm, SYM_KILO, SYM_RPM);
 }
 
 void AP_OSD_Screen::draw_blh_amps(uint8_t x, uint8_t y)
