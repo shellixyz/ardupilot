@@ -470,6 +470,10 @@ public:
     AP_Int8 failsafe_scr;
     AP_Int32 button_delay_ms;
     AP_Int8 efficiency_unit_base;
+#if HAL_WITH_ESC_TELEM
+    AP_Float warn_blhrpm;
+    AP_Float warn_blhtemp;
+#endif
 
     enum {
         OPTION_DECIMAL_PACK = 1U<<0,
