@@ -1662,7 +1662,7 @@ void AP_OSD_Screen::draw_esc_temp(uint8_t x, uint8_t y)
 {
     int16_t etemp;
     // first parameter is index into array of ESC's.  Hardwire to zero (first) for now.
-    if (!AP::esc_telem().get_temperature(0, etemp)) {
+    if (!AP::esc_telem().get_highest_temperature(etemp)) {
         return;
     }
 
@@ -1672,12 +1672,7 @@ void AP_OSD_Screen::draw_esc_temp(uint8_t x, uint8_t y)
 
 void AP_OSD_Screen::draw_esc_rpm(uint8_t x, uint8_t y)
 {
-    float rpm;
-    // first parameter is index into array of ESC's.  Hardwire to zero (first) for now.
-    if (!AP::esc_telem().get_rpm(0, rpm)) {
-        return;
-    }
-    float krpm = rpm * 0.001f;
+    float krpm = AP::esc_telem().get_average_rpm() * 0.001f;
     const char *format = krpm < 9.995 ? "%.2f%c%c" : (krpm < 99.95 ? "%.1f%c%c" : "%.0f%c%c");
     const bool warn_high = osd->warn_blh_high_rpm > 0 && krpm > osd->warn_blh_high_rpm;
     const bool warn_low = osd->warn_blh_low_rpm > 0 && krpm < osd->warn_blh_low_rpm && gcs().get_hud_throttle() >= 5;
