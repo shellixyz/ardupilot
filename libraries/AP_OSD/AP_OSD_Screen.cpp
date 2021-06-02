@@ -1679,7 +1679,9 @@ void AP_OSD_Screen::draw_esc_rpm(uint8_t x, uint8_t y)
     }
     float krpm = rpm * 0.001f;
     const char *format = krpm < 9.995 ? "%.2f%c%c" : (krpm < 99.95 ? "%.1f%c%c" : "%.0f%c%c");
-    backend->write(x, y, (osd->warn_blhrpm > 0 && krpm > osd->warn_blhrpm), format, krpm, SYM_KILO, SYM_RPM);
+    const bool warn_high = osd->warn_blh_high_rpm > 0 && krpm > osd->warn_blh_high_rpm;
+    const bool warn_low = osd->warn_blh_low_rpm > 0 && krpm < osd->warn_blh_low_rpm && gcs().get_hud_throttle() >= 5;
+    backend->write(x, y, warn_high || warn_low, format, krpm, SYM_KILO, SYM_RPM);
 }
 
 void AP_OSD_Screen::draw_esc_amps(uint8_t x, uint8_t y)

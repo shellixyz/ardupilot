@@ -471,7 +471,8 @@ public:
     AP_Int32 button_delay_ms;
     AP_Int8 efficiency_unit_base;
 #if HAL_WITH_ESC_TELEM
-    AP_Float warn_blhrpm;
+    AP_Float warn_blh_high_rpm;
+    AP_Float warn_blh_low_rpm;
     AP_Float warn_blhtemp;
 #endif
 
