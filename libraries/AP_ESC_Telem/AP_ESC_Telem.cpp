@@ -34,25 +34,26 @@ AP_ESC_Telem::AP_ESC_Telem()
     _singleton = this;
 }
 
-// return the average motor frequency in Hz for dynamic filtering
-float AP_ESC_Telem::get_average_motor_frequency_hz() const
+// return the average motor RPM
+float AP_ESC_Telem::get_average_rpm() const
 {
-    float motor_freq = 0.0f;
+    float rpm_avg = 0.0f;
     uint8_t valid_escs = 0;
 
-    // average the rpm of each motor and convert to Hz
+    // average the rpm of each motor
     for (uint8_t i = 0; i < ESC_TELEM_MAX_ESCS; i++) {
         float rpm;
         if (get_rpm(i, rpm)) {
-            motor_freq += rpm * (1.0f / 60.0f);
+            rpm_avg += rpm;
             valid_escs++;
         }
     }
+
     if (valid_escs > 0) {
-        motor_freq /= valid_escs;
+        rpm_avg /= valid_escs;
     }
 
-    return motor_freq;
+    return rpm_avg;
 }
 
 // return all the motor frequencies in Hz for dynamic filtering
@@ -128,6 +129,22 @@ bool AP_ESC_Telem::get_temperature(uint8_t esc_index, int16_t& temp) const
     }
     temp = _telem_data[esc_index].temperature_cdeg;
     return true;
+}
+
+// get the highest ESC temperature in centi-degrees if available, returns true if there is valid data for at least one ESC
+bool AP_ESC_Telem::get_highest_temperature(int16_t& temp) const
+{
+    uint8_t valid_escs = 0;
+
+    for (uint8_t i = 0; i < ESC_TELEM_MAX_ESCS; i++) {
+        int16_t temp_temp;
+        if (get_temperature(i, temp_temp)) {
+            temp = MAX(temp, temp_temp);
+            valid_escs++;
+        }
+    }
+
+    return !!valid_escs; // return true if valid_escs > 0
 }
 
 // get an individual motor's temperature in centi-degrees if available, returns true on success

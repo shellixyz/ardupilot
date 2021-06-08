@@ -27,8 +27,14 @@ public:
     // get an individual ESC's raw rpm if available
     bool get_raw_rpm(uint8_t esc_index, float& rpm) const;
 
+    // return the average motor RPM
+    float get_average_rpm() const;
+
     // get an individual ESC's temperature in centi-degrees if available, returns true on success
     bool get_temperature(uint8_t esc_index, int16_t& temp) const;
+
+    // get the highest ESC temperature in centi-degrees if available, returns true on success
+    bool get_highest_temperature(int16_t& temp) const;
 
     // get an individual motor's temperature in centi-degrees if available, returns true on success
     bool get_motor_temperature(uint8_t esc_index, int16_t& temp) const;
@@ -46,7 +52,7 @@ public:
     bool get_consumption_mah(uint8_t esc_index, float& consumption_mah) const;
 
     // return the average motor frequency in Hz for dynamic filtering
-    float get_average_motor_frequency_hz() const;
+    float get_average_motor_frequency_hz() const { return get_average_rpm() / 60.0; }
 
     // return all of the motor frequencies in Hz for dynamic filtering
     uint8_t get_motor_frequencies_hz(uint8_t nfreqs, float* freqs) const;
